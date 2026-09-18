@@ -7,3 +7,6 @@ Desktop.ini
 *.log
 *.tmp
 *~
+
+# exe 发行目录（230MB 运行时，不入库；发行 zip 与 packaging 源码入库）
+release/MyDay-exe-win64/
