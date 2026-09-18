@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="zh" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyDay</title>
+<style>
+/* ================= 设计令牌 ================= */
+:root{
+  --bg:#f3f5f9; --bg2:#eaedf4; --card:#ffffff; --text:#191d27; --text2:#5a6172; --text3:#9299a8;
+  --border:#e6e9f0; --accent:#4c6ef5; --accent2:#7c5cf5; --accent-weak:#eef1fe;
+  --danger:#e03131; --warn:#f08c00; --ok:#2f9e44;
+  --shadow:0 1px 2px rgba(23,29,49,.04),0 6px 20px rgba(23,29,49,.05);
+  --shadow-lg:0 12px 32px rgba(23,29,49,.14);
+  --tag-media:#e8590c; --tag-dev:#4263eb; --tag-consult:#0ca678; --tag-life:#9c36b5;
+  --r:14px;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --bg:#131418; --bg2:#1a1c22; --card:#1e2027; --text:#e9ebf1; --text2:#a9aebb; --text3:#767b88;
+  --border:#2e313b; --accent:#748ffc; --accent2:#9775fa; --accent-weak:#2a3050;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.22);
+  --shadow-lg:0 12px 32px rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+/* ================= 基础与布局 ================= */
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  background:
+    radial-gradient(1100px 480px at 85% -10%, rgba(124,92,245,.07), transparent 60%),
+    radial-gradient(900px 420px at -10% 0%, rgba(76,110,245,.08), transparent 55%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--text);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;border:3px solid transparent;background-clip:content-box}
+#app{display:flex;min-height:100vh}
+#sidebar{width:210px;flex:0 0 210px;background:var(--card);border-right:1px solid var(--border);
+  padding:18px 12px 14px;display:flex;flex-direction:column;gap:2px;position:sticky;top:0;height:100vh}
+.brand{display:flex;gap:10px;align-items:center;margin-bottom:16px;padding:0 4px}
+.logo{width:36px;height:36px;border-radius:11px;flex:0 0 36px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;font-weight:800;font-size:17px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(76,110,245,.35)}
+.brand h1{font-size:17px;margin:0;letter-spacing:.3px}
+.brand-date{color:var(--text2);font-size:12px;margin:1px 0 0}
+.nav-item{display:flex;align-items:center;gap:10px;width:100%;padding:8px 11px;border:0;background:none;
+  color:var(--text2);border-radius:10px;cursor:pointer;font-size:14px;text-align:left;font-family:inherit;
+  transition:background .15s,color .15s}
+.nav-item:hover{background:var(--accent-weak);color:var(--text)}
+.nav-item.active{background:var(--accent-weak);color:var(--accent);font-weight:600}
+.nav-item svg{width:16px;height:16px;flex:0 0 16px}
+#data-status{margin-top:auto;font-size:12px;color:var(--text3);padding:8px 6px 2px;display:flex;flex-direction:column;gap:6px}
+.ds-save{display:flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;border-radius:99px;display:inline-block}
+.dot.ok{background:var(--ok)}
+.ds-backup{border:0;background:none;padding:0;font:inherit;font-size:12px;cursor:pointer;text-align:left;color:var(--text3)}
+.ds-backup.ok{color:var(--ok)} .ds-backup.warn{color:var(--warn)} .ds-backup.danger{color:var(--danger)}
+#content{flex:1;padding:26px 32px;max-width:1100px;min-width:0}
+.page-title{font-size:21px;font-weight:800;margin:0 0 16px;letter-spacing:.2px}
+.page-sub{color:var(--text2);font-size:13px;margin:-10px 0 16px}
+/* ================= 卡片与通用组件 ================= */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
+.card-title{font-size:15px;font-weight:700;margin:0 0 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid2 .card{margin-bottom:0}
+.muted{color:var(--text2)} .dim{color:var(--text3)} .small{font-size:12px}
+.inline-add{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+input,select,textarea{background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);
+  padding:7px 11px;font:inherit;transition:border-color .15s, box-shadow .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-weak)}
+input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex:0 0 16px;padding:0}
+input.num{width:74px} input.num2{width:58px} input.grow{flex:1;min-width:120px}
+textarea{width:100%;resize:vertical;min-height:60px}
+.btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:10px;
+  padding:7px 14px;cursor:pointer;font:inherit;white-space:nowrap;transition:all .15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border:1px solid transparent;color:#fff;
+  box-shadow:0 2px 10px rgba(76,110,245,.30)}
+.btn-primary:hover{color:#fff;filter:brightness(1.07)}
+.btn-danger{background:var(--danger);border-color:var(--danger);color:#fff}
+.btn-danger:hover{opacity:.9;color:#fff}
+.btn-ghost{background:none;border-color:transparent;color:var(--text2)}
+.btn-ghost:hover{border-color:var(--border);color:var(--accent)}
+.btn-sm{padding:3px 10px;font-size:12px;border-radius:8px}
+.list-item{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--border)}
+.list-item:last-child{border-bottom:0}
+.item-text{flex:1;cursor:pointer;min-width:0;word-break:break-word}
+.item-text.done,text.done{text-decoration:line-through;color:var(--text3)}
+.del-btn{visibility:hidden;flex:0 0 auto;background:none;border:0;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:6px}
+.list-item:hover .del-btn,.hoverable:hover .del-btn{visibility:visible}
+.del-btn:hover{color:var(--danger);background:var(--bg)}
+.tag-chip{font-size:11px;padding:1px 8px;border-radius:99px;flex:0 0 auto;font-weight:600}
+.tag-media{color:var(--tag-media);background:rgba(232,89,12,.12)}
+.tag-dev{color:var(--tag-dev);background:rgba(66,99,235,.12)}
+.tag-consult{color:var(--tag-consult);background:rgba(12,166,120,.12)}
+.tag-life{color:var(--tag-life);background:rgba(156,54,181,.12)}
+.chip{display:inline-block;font-size:12px;padding:3px 11px;border-radius:99px;border:1px solid var(--border);
+  background:var(--card);color:var(--text2);cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip.active{background:var(--accent-weak);border-color:var(--accent);color:var(--accent);font-weight:600}
+.empty{color:var(--text3);text-align:center;padding:20px 0;font-size:13px}
+.progress{height:9px;background:var(--bg2);border-radius:99px;overflow:hidden;margin:8px 0 12px}
+.progress>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s}
+.statbar{display:flex;gap:18px;color:var(--text2);font-size:13px;margin:0 0 14px;flex-wrap:wrap;align-items:center}
+.tabs{display:inline-flex;gap:4px;background:var(--bg2);padding:4px;border-radius:12px;margin-bottom:16px}
+.tab{padding:5px 14px;border-radius:9px;border:0;background:transparent;color:var(--text2);cursor:pointer;font:inherit;font-size:13px;transition:all .15s}
+.tab.active{background:var(--card);color:var(--accent);box-shadow:var(--shadow);font-weight:600}
+.group-title{font-size:12px;font-weight:700;color:var(--text3);margin:14px 0 4px;display:flex;align-items:center;gap:8px}
+.group-title:first-of-type{margin-top:4px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+/* 左右分栏（自媒体/开发/咨询） */
+.split{display:grid;grid-template-columns:250px 1fr;gap:16px;align-items:start}
+.split .card{margin-bottom:0}
+/* 看板 */
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kcol{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px;min-height:140px}
+.kcol-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;justify-content:space-between}
+.kcard{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:13px;transition:all .15s}
+.kcard:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.kcard .row{gap:6px}
+/* 弹窗与提示 */
+.overlay{position:fixed;inset:0;background:rgba(15,18,30,.5);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal{background:var(--card);border-radius:16px;padding:22px;width:440px;max-width:92vw;box-shadow:var(--shadow-lg)}
+.modal h3{margin:0 0 10px;font-size:16px}
+.modal .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+#toast-area{position:fixed;right:20px;bottom:20px;z-index:60}
+.toast{background:var(--text);color:var(--bg);padding:11px 16px;border-radius:12px;display:flex;gap:14px;
+  align-items:center;box-shadow:var(--shadow-lg);font-size:13px}
+.toast button{background:none;border:0;color:inherit;font:inherit;font-weight:700;cursor:pointer;opacity:.85}
+/* 摘要卡（首页） */
+.sum-card{cursor:pointer;transition:all .18s}
+.sum-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--accent)}
+.sum-card .card-title svg{width:15px;height:15px;color:var(--accent);flex:0 0 15px}
+.sum-arrow{margin-left:auto;color:var(--text3);opacity:0;transition:all .15s;font-weight:400}
+.sum-card:hover .sum-arrow{opacity:1;color:var(--accent);transform:translateX(2px)}
+.sum-line{font-size:13px;color:var(--text2);margin:3px 0;word-break:break-word}
+.sum-line b{color:var(--text);font-weight:600}
+/* 模板周行 / 历史明细 */
+.week-row{display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)}
+.week-row:last-child{border-bottom:0}
+.week-day{flex:0 0 52px;font-size:13px;font-weight:600;color:var(--text2)}
+.log-detail{background:var(--bg);border-radius:10px;padding:8px 12px;margin:6px 0;font-size:13px}
+.lookup-panel{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px;margin-top:8px;max-height:220px;overflow:auto}
+.lookup-item{display:flex;justify-content:space-between;gap:8px;padding:5px 6px;border-radius:6px;cursor:pointer;font-size:13px}
+.lookup-item:hover{background:var(--accent-weak)}
+/* 图表（数据看板） */
+.chart-row{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:13px}
+.chart-label{flex:0 0 190px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)}
+.chart-bar{flex:1;height:15px;background:var(--bg2);border-radius:99px;overflow:hidden}
+.chart-bar>i{display:block;height:100%;border-radius:99px;min-width:3px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.chart-val{flex:0 0 66px;font-weight:700;font-variant-numeric:tabular-nums}
+/* 月历 */
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+.cal-head-cell{text-align:center;font-size:12px;font-weight:600;color:var(--text3);padding:2px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-cell{min-height:76px;border:1px solid var(--border);border-radius:11px;padding:6px 8px;background:var(--card);font-size:12px;overflow:hidden}
+.cal-cell.out{opacity:.35}
+.cal-cell.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.cal-cell.has{background:var(--accent-weak);border-color:var(--accent)}
+.cal-cell[data-action]{cursor:pointer}
+.cal-cell[data-action]:hover{border-color:var(--accent);transform:translateY(-1px)}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="brand"><div class="logo">M</div><div><h1>MyDay</h1><div class="brand-date" id="brand-date"></div></div></div>
+    <nav id="nav"></nav>
+    <div id="data-status"></div>
+  </aside>
+  <main id="content"></main>
+</div>
+<div id="toast-area"></div>
+<div id="modal-root"></div>
+
+<script>
+'use strict';
+/* =========================================================
+   MyDay v1.0 —— 单文件本地应用
+   分区：1.图标 2.多语言字典 3.工具 4.存储 5.渲染框架与全局组件
+         6.各模块视图 7.启动
+   ========================================================= */
+
+/* ---------- 1. 图标（内嵌 SVG，零外部依赖） ---------- */
+const SVG = (p)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const ICONS = {
+  home: SVG('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>'),
+  today: SVG('<rect x="3.5" y="4" width="17" height="17" rx="3"/><path d="m8 12.5 3 3 5.5-6"/>'),
+  media: SVG('<rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9.5 5 2.5-5 2.5z"/>'),
+  dev: SVG('<path d="m8.5 8-4 4 4 4"/><path d="m15.5 8 4 4-4 4"/>'),
+  consult: SVG('<path d="M5 4h4l1.5 4.5-2.5 1.5a12 12 0 0 0 6 6l1.5-2.5L20 15v4a2 2 0 0 1-2 2A15 15 0 0 1 3 6a2 2 0 0 1 2-2z"/>'),
+  fitness: SVG('<path d="M6.5 7.5v9M4 9v6M17.5 7.5v9M20 9v6M6.5 12h11"/>'),
+  diet: SVG('<path d="M4 13h16a8 8 0 0 1-16 0z"/><path d="M9 8c0-2 1.5-3 3-3s3 1 3 3"/>'),
+  games: SVG('<rect x="2.5" y="7.5" width="19" height="10" rx="4"/><path d="M8 10.5v4M6 12.5h4M16 11.5h.01M18.5 14h.01"/>'),
+  settings: SVG('<circle cx="12" cy="12" r="3"/><path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1"/>')
+};
+
+/* ---------- 2. 多语言字典（界面全部文案；枚举只存键，显示时经 t() 渲染） ---------- */
+const I18N = {
+zh: {
+  nav:{home:'首页总览',today:'今日计划',media:'自媒体',dev:'开发工作',consult:'咨询工作',fitness:'健身计划',diet:'饮食计划',games:'游戏娱乐',settings:'数据与设置'},
+  greet:{morning:'早上好',afternoon:'下午好',evening:'晚上好'},
+  week:['周日','周一','周二','周三','周四','周五','周六'], mon:[],
+  status:{saved:'数据已保存',lastBackup:'上次备份',never:'从未备份',today:'今天',daysAgo:'{n}天前',saveNow:'立即保存'},
+  common:{add:'添加',save:'保存',cancel:'取消',del:'删除',edit:'编辑',confirm:'确认',undo:'撤销',
+    deleted:'已删除',search:'搜索',showDone:'显示已完成',hideDone:'隐藏已完成',all:'全部',
+    today:'今天',yesterday:'昨天',optional:'选填',none:'暂无',close:'关闭',building:'本模块将在下一里程碑实现',
+    min:'分钟',hr:'小时',kcal:'千卡'},
+  home:{memoTitle:'快速备忘',memoPh:'记点什么…',pending:'待发布：',latest:'最近：',devActive:'进行中 {n} 个项目',
+    devTasks:'未完成任务 {n}',mealsN:'已记 {n} 餐',noPlan:'今天没有安排训练'},
+  today:{ph:'今天要做什么？',carried:'之前未完成',addToday:'加入今天',finishIt:'完成掉'},
+  media:{ideas:'选题灵感库',ideaPh:'想到的选题，回车记录',convert:'转成正式内容',addContent:'+ 新内容',
+    titlePh:'内容标题',platform:'平台',platformPh:'平台，如 B站',dateLabel:'日期',note:'备注',stageLabel:'阶段',
+    advance:'推进→',more:'查看更多',less:'收起',statPub:'本月已发布 {n} 条',noPending:'暂无待发布内容',
+    ideaEmpty:'灵感库是空的，想到什么就记下来',noItems:'看板是空的，点「+ 新内容」开始',
+    views:'播放',likes:'点赞',comments:'评论',total:'合计',chartEmpty:'给已发布内容录入数据，这里自动生成图表',stats:'数据看板'},
+  dev:{newProj:'+ 新建项目',projPh:'项目名称',noProj:'还没有项目，新建一个吧',tasks:'任务',taskPh:'要做什么？',
+    notes:'笔记与片段',noteTitlePh:'标题',noteContentPh:'内容、命令、代码片段…',addNote:'+ 添加笔记',
+    searchPh:'搜索所有项目的笔记…',results:'搜索结果',noResults:'没有匹配的笔记',noTask:'暂无任务',
+    noNotes:'暂无笔记',delConfirm:'删除项目会一并删除其任务和笔记，确定？',addTaskBtn:'+ 添加任务'},
+  consult:{newClient:'+ 新建客户',clientPh:'客户名称',noClient:'还没有客户',info:'基本信息',noteLabel:'备注',
+    contact:'联系方式',addSession:'+ 添加咨询记录',sDate:'日期',summary:'内容摘要',minutes:'时长（分钟）',
+    followUp:'后续待办',addFollow:'→ 加入今日计划',addedFollow:'已加入',sessions:'咨询记录',
+    noSessions:'还没有咨询记录',statMonth:'本月咨询 {n} 次',statTotal:'累计 {h}',
+    delConfirm:'删除客户会一并删除其咨询记录，确定？',searchPh:'搜索客户…',delBtn:'删除客户'},
+  fitness:{tabToday:'今日训练',tabTemplate:'每周模板',tabHistory:'历史记录',planToday:'今天按计划：{x}',rest:'今天休息',
+    exName:'动作名',sets:'组数',reps:'次数',weight:'重量kg',noteLabel:'备注',addEx:'+ 记录动作',
+    noEx:'还没有动作记录',backdateHint:'可改日期补记',monthStat:'本月训练 {n} 次',weekStat:'本周 {n} 次',
+    noLogs:'还没有训练记录',exercises:'动作',tabCal:'月历'},
+  diet:{tabToday:'今日饮食',tabLookup:'速查表',foodPh:'吃了什么',kcalPh:'千卡',pickFromLookup:'从速查表选',
+    lookupEmpty:'速查表还是空的，先添加几个常吃的食物',water:'喝水',waterGoal:'目标 {n} 杯',addCup:'+一杯',
+    subCup:'−一杯',editGoal:'改目标',totalKcal:'今日热量：{n} 千卡',lookupName:'食物名称',
+    lookupKcal:'单份热量（千卡）',addFood:'+ 添加食物',filterPh:'输入筛选',noPick:'没有匹配的食物',
+    noMeals:'还没有记录',tabCal:'月历'},
+  games:{addGame:'+ 添加游戏',gamePh:'游戏名称',noGames:'游戏库还是空的，添加第一款游戏吧',record:'记录游玩',
+    minPh:'分钟',log:'记一下',recent:'最近游玩',monthTotal:'本月 {h}',playingN:'在玩 {n} 款',
+    noPlays:'还没有游玩记录'},
+  settings:{language:'语言',theme:'外观',light:'浅色',dark:'深色',backup:'数据备份',exportBtn:'导出全部数据',
+    lastExport:'上次导出：{x}',importBtn:'从存档导入',importTitle:'导入存档',
+    importBody:'将覆盖当前全部数据，且无法撤销。建议先导出当前数据作为备份。',
+    importGo:'导入并覆盖',
+    importSummary:'存档包含：{s}',danger:'危险区',clearTitle:'清空全部数据',
+    clearBody:'将永久删除所有模块的数据，无法恢复。',clearHint:'输入“清空”以确认',clearGo:'永久清空',
+    clearMismatch:'输入不匹配，未执行清空',cleared:'已清空全部数据',imported:'导入成功，数据已恢复',
+    importBad:'导入失败：文件无效或与 MyDay 存档结构不符。当前数据未改动。',
+    about:'说明',
+    aboutBody:'所有数据保存在这台电脑的浏览器里，不会上传。清理浏览器数据会丢失存档——建议定期导出并另存到 U 盘或网盘。',
+    version:'版本'},
+  enum:{
+    tag:{media:'自媒体',dev:'开发',consult:'咨询',life:'生活'},
+    stage:{idea:'想法',wip:'准备中',draft:'草稿完成',published:'已发布'},
+    proj:{active:'进行中',paused:'暂停',done:'已完成'},
+    game:{playing:'在玩',wish:'想玩',finished:'通关',dropped:'弃坑'},
+    meal:{breakfast:'早餐',lunch:'午餐',dinner:'晚餐',snack:'加餐'},
+    week:{mon:'周一',tue:'周二',wed:'周三',thu:'周四',fri:'周五',sat:'周六',sun:'周日'}
+  }
+},
+en: {
+  nav:{home:'Home',today:"Today's Plan",media:'Content',dev:'Dev Work',consult:'Consulting',fitness:'Fitness',diet:'Diet',games:'Games',settings:'Data & Settings'},
+  greet:{morning:'Good morning',afternoon:'Good afternoon',evening:'Good evening'},
+  week:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+  mon:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+  status:{saved:'Data saved',lastBackup:'Last backup',never:'Never',today:'today',daysAgo:'{n}d ago',saveNow:'Save now'},
+  common:{add:'Add',save:'Save',cancel:'Cancel',del:'Delete',edit:'Edit',confirm:'Confirm',undo:'Undo',
+    deleted:'Deleted',search:'Search',showDone:'Show completed',hideDone:'Hide completed',all:'All',
+    today:'Today',yesterday:'Yesterday',optional:'optional',none:'None yet',close:'Close',building:'This module arrives in the next milestone',
+    min:'min',hr:'h',kcal:'kcal'},
+  home:{memoTitle:'Quick notes',memoPh:'Jot something down…',pending:'Pending: ',latest:'Latest: ',devActive:'{n} active projects',
+    devTasks:'{n} open tasks',mealsN:'{n} meals logged',noPlan:'No workout planned today'},
+  today:{ph:"What needs doing today?",carried:'Unfinished from earlier',addToday:'Add to today',finishIt:'Mark done'},
+  media:{ideas:'Ideas',ideaPh:'Capture an idea, press Enter',convert:'Move to board',addContent:'+ New content',
+    titlePh:'Content title',platform:'Platform',platformPh:'Platform, e.g. YouTube',dateLabel:'Date',note:'Note',stageLabel:'Stage',
+    advance:'Advance →',more:'Show all',less:'Show less',statPub:'{n} published this month',noPending:'Nothing pending',
+    ideaEmpty:'No ideas yet — jot them down as they come',noItems:'Board is empty. Click “+ New content” to start',
+    views:'Views',likes:'Likes',comments:'Comments',total:'Total',chartEmpty:'Add stats to published items and the chart appears here',stats:'Stats dashboard'},
+  dev:{newProj:'+ New project',projPh:'Project name',noProj:'No projects yet',tasks:'Tasks',taskPh:'What needs doing?',
+    notes:'Notes & snippets',noteTitlePh:'Title',noteContentPh:'Content, commands, code snippets…',addNote:'+ Add note',
+    searchPh:'Search notes across projects…',results:'Results',noResults:'No matching notes',noTask:'No tasks',
+    noNotes:'No notes',delConfirm:'Delete this project with all its tasks and notes?',addTaskBtn:'+ Add task'},
+  consult:{newClient:'+ New client',clientPh:'Client name',noClient:'No clients yet',info:'Info',noteLabel:'Note',
+    contact:'Contact',addSession:'+ Add session',sDate:'Date',summary:'Summary',minutes:'Duration (min)',
+    followUp:'Follow-up',addFollow:'→ Add to Today',addedFollow:'Added',sessions:'Sessions',
+    noSessions:'No sessions yet',statMonth:'{n} sessions this month',statTotal:'Total {h}',
+    delConfirm:'Delete this client with all session records?',searchPh:'Search clients…',delBtn:'Delete client'},
+  fitness:{tabToday:'Today',tabTemplate:'Weekly plan',tabHistory:'History',planToday:"Today's plan: {x}",rest:'Rest day',
+    exName:'Exercise',sets:'Sets',reps:'Reps',weight:'Weight kg',noteLabel:'Note',addEx:'+ Log exercise',
+    noEx:'No exercises logged yet',backdateHint:'Change the date to backfill',monthStat:'{n} workouts this month',weekStat:'{n} this week',
+    noLogs:'No workout history yet',exercises:'Exercises',tabCal:'Calendar'},
+  diet:{tabToday:'Today',tabLookup:'Food list',foodPh:'What did you eat?',kcalPh:'kcal',pickFromLookup:'Pick from list',
+    lookupEmpty:'Food list is empty — add foods you eat often',water:'Water',waterGoal:'Goal {n} cups',addCup:'+1',
+    subCup:'−1',editGoal:'Set goal',totalKcal:'Today: {n} kcal',lookupName:'Food',
+    lookupKcal:'kcal per serving',addFood:'+ Add food',filterPh:'Type to filter',noPick:'No match',
+    noMeals:'Nothing logged yet',tabCal:'Calendar'},
+  games:{addGame:'+ Add game',gamePh:'Game name',noGames:'Library is empty — add your first game',record:'Log play',
+    minPh:'minutes',log:'Log',recent:'Recent plays',monthTotal:'{h} this month',playingN:'{n} playing',
+    noPlays:'No plays yet'},
+  settings:{language:'Language',theme:'Theme',light:'Light',dark:'Dark',backup:'Backup',exportBtn:'Export all data',
+    lastExport:'Last export: {x}',importBtn:'Import from file',importTitle:'Import backup',
+    importBody:'This will overwrite ALL current data and cannot be undone. Export a backup first.',
+    importGo:'Import & overwrite',
+    importSummary:'Backup contains: {s}',danger:'Danger zone',clearTitle:'Clear all data',
+    clearBody:'Permanently deletes ALL data in every module. Cannot be undone.',clearHint:'Type CLEAR to confirm',clearGo:'Delete everything',
+    clearMismatch:'Text did not match — nothing was cleared',cleared:'All data cleared',imported:'Import complete',
+    importBad:'Import failed: invalid file or wrong structure. Current data untouched.',
+    about:'About',
+    aboutBody:'All data lives in this browser on this computer and is never uploaded. Clearing browser data will erase it — export a backup regularly and keep it on a USB drive or cloud folder.',
+    version:'Version'},
+  enum:{
+    tag:{media:'Media',dev:'Dev',consult:'Consulting',life:'Life'},
+    stage:{idea:'Idea',wip:'In progress',draft:'Draft done',published:'Published'},
+    proj:{active:'Active',paused:'Paused',done:'Done'},
+    game:{playing:'Playing',wish:'Wishlist',finished:'Finished',dropped:'Dropped'},
+    meal:{breakfast:'Breakfast',lunch:'Lunch',dinner:'Dinner',snack:'Snack'},
+    week:{mon:'Mon',tue:'Tue',wed:'Wed',thu:'Thu',fri:'Fri',sat:'Sat',sun:'Sun'}
+  }
+}
+};
+
+/* ---------- 3. 工具函数 ---------- */
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const p2 = n => String(n).padStart(2,'0');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+
+let TODAY_OVERRIDE = null;                    // 测试辅助：?today=YYYY-MM-DD 或 App._setToday()
+function localDateStr(d){ return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; }
+function todayStr(){ return TODAY_OVERRIDE || localDateStr(new Date()); }
+function dateParts(ds){ const [y,m,d] = ds.split('-').map(Number); return {y,m,d}; }
+function toDate(ds){ const {y,m,d} = dateParts(ds); return new Date(y, m-1, d); }
+function addDaysStr(ds, n){
+  const {y,m,d} = dateParts(ds);
+  const t = new Date(Date.UTC(y, m-1, d) + n*86400000);
+  return `${t.getUTCFullYear()}-${p2(t.getUTCMonth()+1)}-${p2(t.getUTCDate())}`;
+}
+function diffDays(a, b){                      // b - a（天数）
+  const pa = dateParts(a), pb = dateParts(b);
+  return Math.round((Date.UTC(pb.y, pb.m-1, pb.d) - Date.UTC(pa.y, pa.m-1, pa.d)) / 86400000);
+}
+function weekdayKey(ds){ return ['sun','mon','tue','wed','thu','fri','sat'][toDate(ds).getDay()]; }
+function mondayOf(ds){ return addDaysStr(ds, -((toDate(ds).getDay()+6)%7)); }
+function fmtDateDisp(ds){
+  const L = I18N[DB.data.prefs.lang], {m,d} = dateParts(ds), wd = toDate(ds).getDay();
+  return DB.data.prefs.lang==='zh' ? `${m}月${d}日 ${L.week[wd]}` : `${L.week[wd]}, ${L.mon[m-1]} ${d}`;
+}
+function fmtMinutes(min){
+  min = Number(min)||0;
+  const h = Math.floor(min/60), m = min%60, L = DB.data.prefs.lang;
+  if(L==='zh') return h ? (m ? `${h}小时${m}分钟` : `${h}小时`) : `${m}分钟`;
+  return h ? (m ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
+}
+function fmtNum(n){
+  n = Number(n)||0;
+  const L = DB.data.prefs.lang;
+  if(n >= 10000) return (n/10000).toFixed(1).replace(/\.0$/,'') + (L==='zh' ? '万' : 'W');
+  if(L!=='zh' && n >= 1000) return (n/1000).toFixed(1).replace(/\.0$/,'') + 'K';
+  return String(n);
+}
+function shiftMonth(ym, n){
+  const [y,m] = ym.split('-').map(Number);
+  const d = new Date(y, m-1+n, 1);
+  return `${d.getFullYear()}-${p2(d.getMonth()+1)}`;
+}
+function monthGridHtml(ym, cellFn){
+  const start = mondayOf(ym+'-01');
+  const head = WEEK_KEYS.map(k=>`<div class="cal-head-cell">${t('enum.week.'+k)}</div>`).join('');
+  let cells = '';
+  for(let i=0;i<42;i++){
+    const ds = addDaysStr(start,i);
+    const inM = ds.startsWith(ym);
+    const c = cellFn(ds, inM) || {};
+    cells += `<div class="cal-cell ${inM?'':'out'} ${ds===todayStr()?'today':''} ${c.cls||''}" ${c.attr||''}>${c.html||''}</div>`;
+  }
+  return `<div class="cal-head">${head}</div><div class="cal-grid">${cells}</div>`;
+}
+function t(path, vars){
+  const get = (dict) => path.split('.').reduce((o,k)=>o?.[k], dict);
+  let s = get(I18N[DB.data.prefs.lang]); if(s==null) s = get(I18N.zh);
+  if(typeof s !== 'string') return path;
+  if(vars) for(const [k,v] of Object.entries(vars)) s = s.replaceAll('{'+k+'}', v);
+  return s;
+}
+const fmtToday = () => fmtDateDisp(todayStr());
+
+/* ---------- 4. 存储 ---------- */
+const STORE_KEY = 'myday-data-v1';
+function seedData(){
+  return {
+    schemaVersion: 1,
+    prefs: { lang:'zh', theme:'light', lastExportAt:null },
+    home:  { memos: [] },
+    today: { todos: [] },
+    media: { ideas: [], items: [] },
+    dev:   { projects: [], tasks: [], notes: [] },
+    consult: { clients: [], sessions: [] },
+    fitness: { weekTemplate:{mon:'',tue:'',wed:'',thu:'',fri:'',sat:'',sun:''}, logs: [] },
+    diet:  { days:{}, waterGoal:8, foodTable: [] },
+    games: { games: [], plays: [] }
+  };
+}
+function mergeSeed(d){
+  const s = seedData();
+  for(const k of Object.keys(s)) if(d[k] === undefined || d[k] === null) d[k] = s[k];
+  d.prefs = {...s.prefs, ...(d.prefs||{})};
+  d.fitness = {...s.fitness, ...(d.fitness||{})};
+  d.fitness.weekTemplate = {...s.fitness.weekTemplate, ...((d.fitness||{}).weekTemplate||{})};
+  d.diet = {...s.diet, ...(d.diet||{})};
+  return d;
+}
+const DB = {
+  data: null,
+  load(){
+    let raw = null;
+    try{ raw = localStorage.getItem(STORE_KEY); }catch(e){}
+    if(raw){
+      try{
+        const d = JSON.parse(raw);
+        if(d && typeof d === 'object' && d.schemaVersion === 1){ this.data = mergeSeed(d); return; }
+      }catch(e){}
+      try{ localStorage.setItem('myday-data-corrupt-' + Date.now(), raw); }catch(e){}
+    }
+    this.data = seedData(); this.save();
+  },
+  save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(this.data)); }catch(e){ alert('保存失败：浏览器存储不可用'); } }
+};
+
+/* ---------- 5. 渲染框架与全局组件 ---------- */
+let view = 'home';
+const NAV = ['home','today','media','dev','consult','fitness','diet','games','settings'];
+
+function applyPrefs(){
+  document.documentElement.dataset.theme = DB.data.prefs.theme;
+  document.documentElement.lang = DB.data.prefs.lang;
+}
+function go(id){ view = id; render(); }
+function render(){ renderSidebar(); $('#content').innerHTML = VIEWS[view](); }
+function refocus(sel){ requestAnimationFrame(()=>{ const el = document.getElementById(sel); if(el){ el.focus(); try{ el.setSelectionRange(el.value.length, el.value.length); }catch(e){} } }); }
+
+function renderSidebar(){
+  $('#nav').innerHTML = NAV.map(id =>
+    `<button class="nav-item ${view===id?'active':''}" data-action="nav.go" data-view="${id}">${ICONS[id]}<span>${t('nav.'+id)}</span></button>`
+  ).join('');
+  $('#brand-date').textContent = fmtToday();
+  const st = backupStatus();
+  $('#data-status').innerHTML =
+    `<div class="ds-save"><span class="dot ok"></span>${t('status.saved')}</div>` +
+    `<button class="ds-backup ${st.cls}" data-action="nav.go" data-view="settings">${t('status.lastBackup')}：${st.label}</button>` +
+    `<button class="btn btn-sm" style="width:100%" data-action="app.save">${t('status.saveNow')}</button>`;
+}
+function backupStatus(){
+  const le = DB.data.prefs.lastExportAt;
+  if(!le) return {cls:'danger', label:t('status.never')};
+  const d = diffDays(le.slice(0,10), todayStr());
+  const label = d<=0 ? t('status.today') : t('status.daysAgo',{n:d});
+  if(d < 7)  return {cls:'ok',     label};
+  if(d < 30) return {cls:'warn',   label};
+  return {cls:'danger', label};
+}
+
+/* --- 行内输入 --- */
+function inlineAddHtml({inputId, placeholder, action, extra='', btnLabel}){
+  return `<div class="inline-add">
+    <input id="${inputId}" class="grow" placeholder="${esc(placeholder)}" data-enter="${action}">
+    ${extra}
+    <button class="btn btn-primary" data-action="${action}">${esc(btnLabel||t('common.add'))}</button>
+  </div>`;
+}
+/* --- 空状态 --- */
+function emptyHtml(msg){ return `<div class="empty">${esc(msg)}</div>`; }
+/* --- 删除 + 撤销 --- */
+let toastTimer = null, undoFn = null;
+function toast(msg, onUndo){
+  const area = $('#toast-area');
+  undoFn = onUndo || null;
+  area.innerHTML = `<div class="toast"><span>${esc(msg)}</span>${onUndo?`<button data-action="toast.undo">${t('common.undo')}</button>`:''}</div>`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ area.innerHTML=''; undoFn=null; }, 5000);
+}
+function deleteWithUndo(list, idx, label){
+  const [item] = list.splice(idx,1);
+  DB.save(); render();
+  toast(label, ()=>{ list.splice(idx,0,item); DB.save(); render(); });
+}
+/* --- 确认弹窗 --- */
+function openModal(html){ $('#modal-root').innerHTML = `<div class="overlay" data-overlay="1"><div class="modal">${html}</div></div>`; }
+function closeModal(){ $('#modal-root').innerHTML=''; }
+function confirmModal({title, body, okLabel, danger=true, onOk, typedWord, typedHint}){
+  openModal(`<h3>${esc(title)}</h3><p class="muted">${esc(body)}</p>
+    ${typedWord?`<input id="confirm-input" placeholder="${esc(typedHint||typedWord)}" style="width:100%">`:''}
+    <div class="modal-actions">
+      <button class="btn" data-action="modal.close">${t('common.cancel')}</button>
+      <button class="btn ${danger?'btn-danger':'btn-primary'}" data-action="modal.ok">${esc(okLabel||t('common.confirm'))}</button>
+    </div>`);
+  MODAL_OK = onOk; MODAL_TYPED = typedWord || null;
+}
+let MODAL_OK = null, MODAL_TYPED = null;
+
+/* --- 事件分发（委托，一次绑定） --- */
+const ACTIONS = {};
+document.addEventListener('click', e=>{
+  const el = e.target.closest('[data-action]');
+  if(el && ACTIONS[el.dataset.action]){ e.preventDefault(); ACTIONS[el.dataset.action](el, e); return; }
+  if(e.target.dataset?.overlay !== undefined && e.target === e.target.closest('.overlay')) closeModal();
+});
+document.addEventListener('keydown', e=>{
+  if((e.ctrlKey||e.metaKey) && String(e.key).toLowerCase()==='s'){
+    e.preventDefault(); ACTIONS['app.save'] && ACTIONS['app.save'](); return;
+  }
+  if(e.isComposing) return;
+  const el = e.target.closest('[data-enter],[data-esc]');
+  if(!el) return;
+  if(e.key==='Enter' && el.dataset.enter){ e.preventDefault(); ACTIONS[el.dataset.enter]?.(el, e); }
+  if(e.key==='Escape' && el.dataset.esc){ e.preventDefault(); ACTIONS[el.dataset.esc]?.(el, e); }
+});
+document.addEventListener('change', e=>{
+  const el = e.target.closest('[data-change]');
+  if(el && ACTIONS[el.dataset.change]) ACTIONS[el.dataset.change](el, e);
+});
+document.addEventListener('input', e=>{
+  const el = e.target.closest('[data-input]');
+  if(el && ACTIONS[el.dataset.input]) ACTIONS[el.dataset.input](el, e);
+});
+ACTIONS['nav.go']      = el => go(el.dataset.view);
+ACTIONS['app.save']    = () => { DB.save(); renderSidebar(); toast(t('status.saved')); };
+ACTIONS['modal.close'] = () => closeModal();
+ACTIONS['modal.ok']    = () => {
+  if(MODAL_TYPED){
+    const v = ($('#confirm-input')||{}).value;
+    if(v !== MODAL_TYPED){ toast(t('settings.clearMismatch')); return; }
+  }
+  const fn = MODAL_OK; MODAL_OK = null; MODAL_TYPED = null; closeModal(); fn && fn();
+};
+ACTIONS['toast.undo']  = () => {
+  const fn = undoFn; undoFn = null; clearTimeout(toastTimer); $('#toast-area').innerHTML='';
+  fn && fn();
+};
+
+/* ---------- 6. 各模块视图 ---------- */
+const VIEWS = {};
+function ph(id){ return `<h2 class="page-title">${t('nav.'+id)}</h2>` + emptyHtml(t('common.building')); }
+
+/* --- 设置（语言+外观+备份+危险区+说明） --- */
+VIEWS.settings = function(){
+  const p = DB.data.prefs;
+  const seg = (items, action, cur) => items.map(([v,label]) =>
+    `<button class="chip ${cur===v?'active':''}" data-action="${action}" data-value="${v}">${esc(label)}</button>`).join('');
+  const le = p.lastExportAt;
+  return `<h2 class="page-title">${t('nav.settings')}</h2>
+  <div class="card">
+    <h3 class="card-title">${t('settings.language')}</h3>
+    <div class="row">${seg([['zh','中文'],['en','English']], 'settings.lang', p.lang)}</div>
+  </div>
+  <div class="card">
+    <h3 class="card-title">${t('settings.theme')}</h3>
+    <div class="row">${seg([['light',t('settings.light')],['dark',t('settings.dark')]], 'settings.theme', p.theme)}</div>
+  </div>
+  <div class="card">
+    <h3 class="card-title">${t('settings.backup')}</h3>
+    <div class="row">
+      <button class="btn btn-primary" data-action="settings.export">${t('settings.exportBtn')}</button>
+      <button class="btn" data-action="settings.importPick">${t('settings.importBtn')}</button>
+      <input type="file" id="import-file" accept=".json,application/json" style="display:none">
+    </div>
+    <div class="small dim" style="margin-top:8px">${t('settings.lastExport',{x: le ? le.replace('T',' ') : t('status.never')})}</div>
+  </div>
+  <div class="card" style="border-color:var(--danger)">
+    <h3 class="card-title" style="color:var(--danger)">${t('settings.danger')} · ${t('settings.clearTitle')}</h3>
+    <p class="small muted" style="margin:0 0 10px">${t('settings.clearBody')}</p>
+    <button class="btn btn-danger" data-action="settings.clearAsk">${t('settings.clearTitle')}</button>
+  </div>
+  <div class="card">
+    <h3 class="card-title">${t('settings.about')}</h3>
+    <p class="small muted" style="margin:0 0 6px">${t('settings.aboutBody')}</p>
+    <div class="small dim">${t('settings.version')} ${App.version}</div>
+  </div>`;
+};
+ACTIONS['settings.lang']   = el => { DB.data.prefs.lang = el.dataset.value; DB.save(); applyPrefs(); render(); };
+ACTIONS['settings.theme']  = el => { DB.data.prefs.theme = el.dataset.value; DB.save(); applyPrefs(); render(); };
+ACTIONS['settings.export'] = () => {
+  try{
+    const blob = new Blob([JSON.stringify(DB.data, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `MyDay-${todayStr()}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  }catch(e){}
+  const d = new Date();
+  DB.data.prefs.lastExportAt = `${todayStr()}T${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  DB.save(); render();
+};
+ACTIONS['settings.importPick'] = () => $('#import-file').click();
+document.addEventListener('change', e=>{
+  if(e.target.id !== 'import-file') return;
+  const f = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let parsed = null;
+    try{ parsed = JSON.parse(reader.result); }catch(err){}
+    if(!parsed || typeof parsed !== 'object' || parsed.schemaVersion !== 1 || !parsed.prefs || !parsed.today){
+      toast(t('settings.importBad')); return;
+    }
+    const parts = [
+      [t('nav.today'), (parsed.today.todos||[]).length],
+      [t('home.memoTitle'), ((parsed.home||{}).memos||[]).length],
+      [t('nav.media'), ((parsed.media||{}).items||[]).length],
+      [t('nav.dev'), ((parsed.dev||{}).projects||[]).length],
+      [t('nav.consult'), ((parsed.consult||{}).clients||[]).length],
+      [t('nav.fitness'), ((parsed.fitness||{}).logs||[]).length],
+      [t('nav.diet'), Object.keys((parsed.diet||{}).days||{}).length],
+      [t('nav.games'), ((parsed.games||{}).games||[]).length]
+    ].filter(([,n])=>n>0).map(([k,n])=>`${k} ${n}`).join(' · ') || '0';
+    confirmModal({ title:t('settings.importTitle'),
+      body:`${t('settings.importSummary',{s:parts})}\n${t('settings.importBody')}`,
+      okLabel:t('settings.importGo'), danger:false,
+      onOk:()=>{ DB.data = mergeSeed(parsed); DB.save(); applyPrefs(); render(); toast(t('settings.imported')); } });
+  };
+  reader.readAsText(f);
+});
+ACTIONS['settings.clearAsk'] = () => {
+  confirmModal({ title:t('settings.clearTitle'), body:t('settings.clearBody'),
+    okLabel:t('settings.clearGo'), typedWord:'清空', typedHint:t('settings.clearHint'),
+    onOk:()=>{ DB.data = seedData(); DB.save(); applyPrefs(); render(); toast(t('settings.cleared')); } });
+};
+
+/* --- 今日计划 --- */
+const TAGS = ['media','dev','consult','life'];
+const ui = { showDone:true, carryOpen:false, editTodo:null, mediaEdit:null, mediaShowAll:false, mediaMetric:'views',
+             devSel:null, devSearch:'', devRename:null, editTask:null, noteEdit:null,
+             consSel:null, consSearch:'', consRename:null, consField:null, sessionForm:false,
+             fitTab:'today', fitDate:null, fitOpen:null, fitTplEdit:null, fitCal:null,
+             dietTab:'today', dietDate:null, dietPick:null, dietFilter:'', dietGoalEdit:false, dietCal:null,
+             gameFilter:'all', gameLog:null };
+
+function tagOptions(sel){
+  return TAGS.map(k=>`<option value="${k}" ${(sel||'life')===k?'selected':''}>${t('enum.tag.'+k)}</option>`).join('');
+}
+function todoItemHtml(x){
+  const inner = ui.editTodo===x.id
+    ? `<input id="todo-edit" class="grow" value="${esc(x.text)}" data-enter="today.saveEdit" data-esc="today.cancelEdit">`
+    : `<span class="item-text ${x.done?'done':''}" data-action="today.edit" data-id="${x.id}">${esc(x.text)}</span>`;
+  return `<div class="list-item">
+    <input type="checkbox" ${x.done?'checked':''} data-change="today.toggle" data-id="${x.id}">
+    ${inner}
+    <button class="del-btn" data-action="today.del" data-id="${x.id}">✕</button>
+  </div>`;
+}
+function todoGroupsHtml(todays){
+  const visible = ui.showDone ? todays : todays.filter(x=>!x.done);
+  let html = `<div class="row" style="justify-content:flex-end;margin-bottom:4px">
+    <button class="btn btn-ghost btn-sm" data-action="today.showDone">${ui.showDone?t('common.hideDone'):t('common.showDone')}</button></div>`;
+  if(!todays.length) return html + emptyHtml(t('today.ph'));
+  for(const tag of TAGS){
+    const items = visible.filter(x=>x.tag===tag).sort((a,b)=>(a.done?1:0)-(b.done?1:0));
+    if(!items.length) continue;
+    html += `<div class="group-title"><span class="tag-chip tag-${tag}">${t('enum.tag.'+tag)}</span></div>` +
+            items.map(todoItemHtml).join('');
+  }
+  return html;
+}
+VIEWS.today = function(){
+  const td = todayStr();
+  const todos = DB.data.today.todos;
+  const todays = todos.filter(x=>x.date===td);
+  const done = todays.filter(x=>x.done).length;
+  const carried = todos.filter(x=>x.date<td && !x.done);
+  let carryHtml = '';
+  if(carried.length){
+    carryHtml = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin-bottom:12px">
+      <button class="btn btn-ghost btn-sm" data-action="today.carryToggle">${ui.carryOpen?'▾':'▸'} ${t('today.carried')} (${carried.length})</button>
+      ${ui.carryOpen ? carried.map(x=>`<div class="list-item">
+          <span class="tag-chip tag-${x.tag}">${t('enum.tag.'+x.tag)}</span>
+          <span class="item-text">${esc(x.text)}</span>
+          <button class="btn btn-ghost btn-sm" data-action="today.carryAdd" data-id="${x.id}">${t('today.addToday')}</button>
+          <button class="btn btn-ghost btn-sm" data-action="today.carryDone" data-id="${x.id}">${t('today.finishIt')}</button>
+          <button class="del-btn" data-action="today.del" data-id="${x.id}">✕</button>
+        </div>`).join('') : ''}
+    </div>`;
+  }
+  return `<h2 class="page-title">${fmtToday()}</h2>
+  <p class="page-sub">${done}/${todays.length} ✓</p>
+  <div class="card">
+    ${inlineAddHtml({inputId:'todo-input', placeholder:t('today.ph'), action:'today.add',
+      extra:`<select id="todo-tag">${tagOptions()}</select>`})}
+    ${carryHtml}
+    ${todoGroupsHtml(todays)}
+  </div>`;
+};
+ACTIONS['today.add'] = () => {
+  const inp = $('#todo-input') || $('#home-todo-input');
+  const sel = $('#todo-tag') || $('#home-todo-tag');
+  const v = inp.value.trim();
+  if(!v){ refocus(inp.id); return; }
+  DB.data.today.todos.push({ id:uid(), text:v, tag:sel?sel.value:'life', date:todayStr(), done:false });
+  DB.save(); render(); refocus(inp.id);
+};
+ACTIONS['today.toggle'] = el => {
+  const x = DB.data.today.todos.find(t=>t.id===el.dataset.id); if(!x) return;
+  x.done = !x.done; DB.save(); render();
+};
+ACTIONS['today.del'] = el => {
+  const list = DB.data.today.todos, idx = list.findIndex(t=>t.id===el.dataset.id);
+  if(idx<0) return;
+  deleteWithUndo(list, idx, t('common.deleted'));
+};
+ACTIONS['today.edit'] = el => { ui.editTodo = el.dataset.id; render(); refocus('todo-edit'); };
+ACTIONS['today.saveEdit'] = el => {
+  const x = DB.data.today.todos.find(t=>t.id===ui.editTodo);
+  const v = el.value.trim(); ui.editTodo = null;
+  if(x && v){ x.text = v; DB.save(); }
+  render();
+};
+ACTIONS['today.cancelEdit'] = () => { ui.editTodo = null; render(); };
+ACTIONS['today.showDone']    = () => { ui.showDone = !ui.showDone; render(); };
+ACTIONS['today.carryToggle'] = () => { ui.carryOpen = !ui.carryOpen; render(); };
+ACTIONS['today.carryAdd']  = el => { const x=DB.data.today.todos.find(t=>t.id===el.dataset.id); if(x){ x.date=todayStr(); DB.save(); render(); } };
+ACTIONS['today.carryDone'] = el => { const x=DB.data.today.todos.find(t=>t.id===el.dataset.id); if(x){ x.done=true; DB.save(); render(); } };
+
+/* --- 首页总览 --- */
+function memoItemHtml(m){
+  return `<div class="list-item">
+    <span class="item-text ${m.done?'done':''}" data-action="home.toggleMemo" data-id="${m.id}">${esc(m.text)}</span>
+    <button class="del-btn" data-action="home.delMemo" data-id="${m.id}">✕</button>
+  </div>`;
+}
+function sumCard(id, linesHtml){
+  return `<div class="card sum-card" data-action="nav.go" data-view="${id}">
+    <h3 class="card-title"><span class="row" style="gap:7px">${ICONS[id]||''}<span>${t('nav.'+id)}</span></span><span class="sum-arrow">${SVG('<path d="M9 6l6 6-6 6"/>')}</span></h3>${linesHtml.join('')}</div>`;
+}
+function sumCardsHtml(){
+  const d = DB.data, td = todayStr(), mk = td.slice(0,7);
+  const pub = d.media.items.filter(x=>x.stage==='published' && (x.date||'').startsWith(mk)).length;
+  const pend = d.media.items.filter(x=>x.stage!=='published');
+  const mediaLines = [
+    pub ? `<div class="sum-line">${t('media.statPub',{n:pub})}</div>` : `<div class="sum-line">${t('media.noPending')}</div>`,
+    pend.length ? `<div class="sum-line"><b>${esc(t('home.pending'))}</b>${esc(pend[pend.length-1].title)}</div>` : ''
+  ];
+  const act = d.dev.projects.filter(p=>p.status==='active').length;
+  const open = d.dev.tasks.filter(x=>!x.done).length;
+  const cs = d.consult.sessions.filter(s=>(s.date||'').startsWith(mk)).length;
+  const lastS = d.consult.sessions[d.consult.sessions.length-1];
+  const tpl = d.fitness.weekTemplate[weekdayKey(td)];
+  const wk = mondayOf(td);
+  const wcnt = d.fitness.logs.filter(l=>l.date>=wk && l.date<=td).length;
+  const day = d.diet.days[td];
+  const water = day ? day.water : 0;
+  const mealsN = day ? Object.values(day.meals).filter(a=>a.length).length : 0;
+  const kcal = day ? Object.values(day.meals).reduce((s,a)=>s+a.reduce((q,f)=>q+(Number(f.kcal)||0),0),0) : 0;
+  const playing = d.games.games.filter(g=>g.status==='playing').length;
+  const mh = d.games.plays.filter(p=>(p.date||'').startsWith(mk)).reduce((s,p)=>s+(Number(p.minutes)||0),0);
+  return [
+    sumCard('media', mediaLines),
+    sumCard('dev', [
+      `<div class="sum-line">${t('home.devActive',{n:act})}</div>`,
+      `<div class="sum-line">${t('home.devTasks',{n:open})}</div>`
+    ]),
+    sumCard('consult', [
+      `<div class="sum-line">${t('consult.statMonth',{n:cs})}</div>`,
+      lastS ? `<div class="sum-line"><b>${esc(t('home.latest'))}</b>${esc((lastS.summary||'').slice(0,24))}</div>` : ''
+    ]),
+    sumCard('fitness', [
+      tpl ? `<div class="sum-line">${t('fitness.planToday',{x:tpl})}</div>` : `<div class="sum-line">${t('home.noPlan')}</div>`,
+      `<div class="sum-line">${t('fitness.weekStat',{n:wcnt})}</div>`
+    ]),
+    sumCard('diet', [
+      `<div class="sum-line">${t('diet.water')}: ${water}/${d.diet.waterGoal}</div>`,
+      `<div class="sum-line">${t('home.mealsN',{n:mealsN})}${kcal?' · '+kcal+' '+t('common.kcal'):''}</div>`
+    ]),
+    sumCard('games', [
+      playing ? `<div class="sum-line">${t('games.playingN',{n:playing})}</div>` : `<div class="sum-line">${t('common.none')}</div>`,
+      `<div class="sum-line">${t('games.monthTotal',{h:fmtMinutes(mh)})}</div>`
+    ])
+  ].join('');
+}
+VIEWS.home = function(){
+  const h = new Date().getHours();
+  const g = h < 12 ? t('greet.morning') : h < 18 ? t('greet.afternoon') : t('greet.evening');
+  const td = todayStr();
+  const todays = DB.data.today.todos.filter(x=>x.date===td);
+  const done = todays.filter(x=>x.done).length;
+  const pct = todays.length ? Math.round(done/todays.length*100) : 0;
+  const todoLines = TAGS.map(tag=>{
+    const items = todays.filter(x=>x.tag===tag);
+    if(!items.length) return '';
+    return `<div class="group-title"><span class="tag-chip tag-${tag}">${t('enum.tag.'+tag)}</span></div>` +
+      items.map(x=>`<div class="list-item">
+        <input type="checkbox" ${x.done?'checked':''} data-change="today.toggle" data-id="${x.id}">
+        <span class="item-text ${x.done?'done':''}" data-action="nav.go" data-view="today">${esc(x.text)}</span>
+      </div>`).join('');
+  }).join('');
+  const memos = DB.data.home.memos;
+  return `<h2 class="page-title">${fmtToday()} · ${g}</h2>
+  <div class="card">
+    <h3 class="card-title">${t('nav.today')}<span class="muted small">${done}/${todays.length}</span></h3>
+    <div class="progress"><i style="width:${pct}%"></i></div>
+    ${inlineAddHtml({inputId:'home-todo-input', placeholder:t('today.ph'), action:'today.add',
+      extra:`<select id="home-todo-tag">${tagOptions()}</select>`})}
+    ${todays.length ? todoLines : emptyHtml(t('today.ph'))}
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <h3 class="card-title">${t('home.memoTitle')}</h3>
+      ${inlineAddHtml({inputId:'memo-input', placeholder:t('home.memoPh'), action:'home.addMemo'})}
+      ${memos.length ? memos.map(memoItemHtml).join('') : emptyHtml(t('common.none'))}
+    </div>
+    <div class="grid2" style="align-content:start">${sumCardsHtml()}</div>
+  </div>`;
+};
+ACTIONS['home.addMemo'] = () => {
+  const inp = $('#memo-input'); const v = inp.value.trim();
+  if(!v){ refocus('memo-input'); return; }
+  DB.data.home.memos.unshift({ id:uid(), text:v, done:false });
+  DB.save(); render(); refocus('memo-input');
+};
+ACTIONS['home.toggleMemo'] = el => { const m=DB.data.home.memos.find(x=>x.id===el.dataset.id); if(m){ m.done=!m.done; DB.save(); render(); } };
+ACTIONS['home.delMemo'] = el => {
+  const list=DB.data.home.memos, idx=list.findIndex(x=>x.id===el.dataset.id);
+  if(idx>=0) deleteWithUndo(list, idx, t('common.deleted'));
+};
+/* --- 自媒体 --- */
+const STAGES = ['idea','wip','draft','published'];
+const PLATFORMS = ['B站','抖音','小红书','公众号','知乎','微博'];
+function mediaFormHtml(item){
+  const st = item.stats||{};
+  const stageSel = STAGES.map(k=>`<option value="${k}" ${item.stage===k?'selected':''}>${t('enum.stage.'+k)}</option>`).join('');
+  return `<div class="kcard" style="background:var(--accent-weak)">
+    <input id="m-title" style="width:100%" placeholder="${t('media.titlePh')}" value="${esc(item.title||'')}" data-enter="media.save" data-esc="media.cancelEdit">
+    <div class="row" style="margin-top:6px">
+      <input id="m-platform" list="platform-list" placeholder="${t('media.platformPh')}" value="${esc(item.platform||'')}" style="width:104px" class="small">
+      <input id="m-date" type="date" value="${esc(item.date||'')}" style="width:142px" class="small">
+    </div>
+    <select id="m-stage" style="margin-top:6px;width:100%">${stageSel}</select>
+    <textarea id="m-note" placeholder="${t('media.note')}" style="margin-top:6px;min-height:44px" class="small">${esc(item.note||'')}</textarea>
+    <div class="row" style="margin-top:6px">
+      <input id="m-views" type="number" class="num" placeholder="${t('media.views')}" value="${st.views??''}">
+      <input id="m-likes" type="number" class="num" placeholder="${t('media.likes')}" value="${st.likes??''}">
+      <input id="m-comments" type="number" class="num" placeholder="${t('media.comments')}" value="${st.comments??''}">
+    </div>
+    <div class="row" style="margin-top:8px;justify-content:flex-end">
+      <button class="btn btn-sm" data-action="media.cancelEdit">${t('common.cancel')}</button>
+      <button class="btn btn-primary btn-sm" data-action="media.save">${t('common.save')}</button>
+    </div>
+    <datalist id="platform-list">${PLATFORMS.map(p=>`<option value="${p}"></option>`).join('')}</datalist>
+  </div>`;
+}
+function kcardHtml(x){
+  if(ui.mediaEdit===x.id) return mediaFormHtml(x);
+  const s = x.stats||{};
+  return `<div class="kcard hoverable">
+    <div data-action="media.edit" data-id="${x.id}" style="cursor:pointer;font-weight:600;word-break:break-word">${esc(x.title)}</div>
+    <div class="row small dim" style="margin-top:3px">
+      ${x.platform?`<span class="tag-chip tag-life" style="cursor:default">${esc(x.platform)}</span>`:''}
+      ${x.date?`<span>${esc(x.date)}</span>`:''}
+    </div>
+    ${x.stage==='published'&&s.views!=null?`<div class="small dim" style="margin-top:3px">▶ ${fmtNum(s.views)} · ♥ ${fmtNum(s.likes||0)} · 💬 ${fmtNum(s.comments||0)}</div>`:''}
+    <div class="row" style="margin-top:6px">
+      ${x.stage!=='published'?`<button class="btn btn-ghost btn-sm" data-action="media.advance" data-id="${x.id}">${t('media.advance')}</button>`:''}
+      <button class="del-btn" data-action="media.del" data-id="${x.id}">✕</button>
+    </div>
+  </div>`;
+}
+function kcolHtml(stage, items){
+  let list = items;
+  if(stage==='published'){ const rev=[...items].reverse(); list = ui.mediaShowAll? rev : rev.slice(0,5); }
+  return `<div class="kcol">
+    <div class="kcol-title"><span>${t('enum.stage.'+stage)}</span><span>${items.length}</span></div>
+    ${(ui.mediaEdit==='new'&&stage==='idea') ? mediaFormHtml({stage:'idea'}) : ''}
+    ${list.map(kcardHtml).join('')}
+    ${stage==='published'&&items.length>5 ? `<button class="btn btn-ghost btn-sm" data-action="media.toggleAll">${ui.mediaShowAll?t('media.less'):t('media.more')}</button>`:''}
+    ${!items.length&&stage==='idea'?`<div class="empty" style="padding:8px 0">${t('media.noItems')}</div>`:''}
+  </div>`;
+}
+VIEWS.media = function(){
+  const d = DB.data.media;
+  const mk = todayStr().slice(0,7);
+  const pub = d.items.filter(x=>x.stage==='published' && (x.date||'').startsWith(mk));
+  const byPlat = {};
+  pub.forEach(x=>{ const p = x.platform||'—'; byPlat[p]=(byPlat[p]||0)+1; });
+  const platStr = Object.entries(byPlat).map(([p,n])=>`${p} ${n}`).join(' · ');
+  const metric = ui.mediaMetric||'views';
+  const pubs = d.items.filter(x=>x.stage==='published' && x.stats &&
+      (x.stats.views!=null || x.stats.likes!=null || x.stats.comments!=null))
+    .slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,10);
+  const max = Math.max(1, ...pubs.map(x=>Number((x.stats||{})[metric])||0));
+  const total = pubs.reduce((s,x)=>s+(Number((x.stats||{})[metric])||0),0);
+  return `<h2 class="page-title">${t('nav.media')}</h2>
+  <div class="statbar"><span>${t('media.statPub',{n:pub.length})}</span>${platStr?`<span class="dim">${esc(platStr)}</span>`:''}</div>
+  <div class="card">
+    <h3 class="card-title">${t('media.stats')}
+      <span class="row">${['views','likes','comments'].map(k=>`<button class="chip ${metric===k?'active':''}" data-action="media.metric" data-m="${k}">${t('media.'+k)}</button>`).join('')}</span>
+    </h3>
+    ${pubs.length ? pubs.map(x=>`<div class="chart-row">
+        <span class="chart-label" title="${esc(x.title)}">${esc(x.title)}</span>
+        <div class="chart-bar"><i style="width:${Math.round((Number((x.stats||{})[metric])||0)/max*100)}%"></i></div>
+        <span class="chart-val">${fmtNum((x.stats||{})[metric]||0)}</span>
+      </div>`).join('') + `<div class="small dim" style="margin-top:8px">${t('media.total')}：${fmtNum(total)}</div>`
+      : emptyHtml(t('media.chartEmpty'))}
+  </div>
+  <div class="split">
+    <div class="card">
+      <h3 class="card-title">${t('media.ideas')}</h3>
+      ${inlineAddHtml({inputId:'idea-input', placeholder:t('media.ideaPh'), action:'media.addIdea'})}
+      ${d.ideas.length ? d.ideas.map(x=>`<div class="list-item">
+          <span class="item-text">${esc(x.text)}</span>
+          <button class="btn btn-ghost btn-sm" data-action="media.convert" data-id="${x.id}">${t('media.convert')}</button>
+          <button class="del-btn" data-action="media.ideaDel" data-id="${x.id}">✕</button>
+        </div>`).join('') : emptyHtml(t('media.ideaEmpty'))}
+    </div>
+    <div>
+      <div class="row" style="margin-bottom:10px"><button class="btn btn-primary btn-sm" data-action="media.newItem">${t('media.addContent')}</button></div>
+      <div class="kanban">${STAGES.map(s=>kcolHtml(s, d.items.filter(x=>x.stage===s))).join('')}</div>
+    </div>
+  </div>`;
+};
+ACTIONS['media.addIdea'] = () => {
+  const inp = $('#idea-input'); const v = inp.value.trim();
+  if(!v){ refocus('idea-input'); return; }
+  DB.data.media.ideas.unshift({ id:uid(), text:v, createdAt:todayStr() });
+  DB.save(); render(); refocus('idea-input');
+};
+ACTIONS['media.ideaDel'] = el => {
+  const list = DB.data.media.ideas, idx = list.findIndex(x=>x.id===el.dataset.id);
+  if(idx>=0) deleteWithUndo(list, idx, t('common.deleted'));
+};
+ACTIONS['media.convert'] = el => {
+  const list = DB.data.media.ideas, idx = list.findIndex(x=>x.id===el.dataset.id);
+  if(idx<0) return;
+  const [idea] = list.splice(idx,1);
+  const item = { id:uid(), title:idea.text, stage:'idea', platform:'', date:'', note:'' };
+  DB.data.media.items.push(item); DB.save(); render();
+  toast(t('media.convert'), ()=>{ DB.data.media.items = DB.data.media.items.filter(x=>x.id!==item.id); list.splice(idx,0,idea); DB.save(); render(); });
+};
+ACTIONS['media.newItem'] = () => { ui.mediaEdit='new'; ui.mediaShowAll=ui.mediaShowAll; render(); refocus('m-title'); };
+ACTIONS['media.edit'] = el => { ui.mediaEdit = el.dataset.id; render(); refocus('m-title'); };
+ACTIONS['media.cancelEdit'] = () => { ui.mediaEdit=null; render(); };
+ACTIONS['media.save'] = () => {
+  const title = $('#m-title').value.trim();
+  if(!title){ refocus('m-title'); return; }
+  const data = { title, platform:$('#m-platform').value.trim(), date:$('#m-date').value||'', stage:$('#m-stage').value, note:$('#m-note').value.trim(),
+    stats:{ views:$('#m-views').value?Number($('#m-views').value):null,
+            likes:$('#m-likes').value?Number($('#m-likes').value):null,
+            comments:$('#m-comments').value?Number($('#m-comments').value):null } };
+  if(ui.mediaEdit==='new') DB.data.media.items.push({ id:uid(), ...data });
+  else { const x = DB.data.media.items.find(i=>i.id===ui.mediaEdit); if(x) Object.assign(x, data); }
+  ui.mediaEdit = null; DB.save(); render();
+};
+ACTIONS['media.advance'] = el => {
+  const x = DB.data.media.items.find(i=>i.id===el.dataset.id); if(!x) return;
+  const i = STAGES.indexOf(x.stage);
+  if(i>=0 && i<3){ x.stage = STAGES[i+1]; if(x.stage==='published' && !x.date) x.date = todayStr(); DB.save(); render(); }
+};
+ACTIONS['media.del'] = el => {
+  const list = DB.data.media.items, idx = list.findIndex(x=>x.id===el.dataset.id);
+  if(idx>=0) deleteWithUndo(list, idx, t('common.deleted'));
+};
+ACTIONS['media.toggleAll'] = () => { ui.mediaShowAll = !ui.mediaShowAll; render(); };
+ACTIONS['media.metric'] = el => { ui.mediaMetric = el.dataset.m; render(); };
+/* --- 开发工作 --- */
+function devTaskHtml(x){
+  const inner = ui.editTask===x.id
+    ? `<input id="devtask-edit" class="grow" value="${esc(x.text)}" data-enter="dev.saveTaskEdit" data-esc="dev.cancelTaskEdit">`
+    : `<span class="item-text ${x.done?'done':''}" data-action="dev.editTask" data-id="${x.id}">${esc(x.text)}</span>`;
+  return `<div class="list-item">
+    <input type="checkbox" ${x.done?'checked':''} data-change="dev.toggleTask" data-id="${x.id}">
+    ${inner}
+    <button class="del-btn" data-action="dev.delTask" data-id="${x.id}">✕</button>
+  </div>`;
+}
+function noteFormHtml(n){
+  return `<div style="background:var(--accent-weak);border-radius:8px;padding:10px;margin:6px 0">
+    <input id="note-title" style="width:100%" placeholder="${t('dev.noteTitlePh')}" value="${esc(n.title||'')}" data-enter="dev.saveNote">
+    <textarea id="note-content" placeholder="${t('dev.noteContentPh')}" style="margin-top:6px">${esc(n.content||'')}</textarea>
+    <div class="row" style="margin-top:6px;justify-content:flex-end">
+      <button class="btn btn-sm" data-action="dev.cancelNote">${t('common.cancel')}</button>
+      <button class="btn btn-primary btn-sm" data-action="dev.saveNote">${t('common.save')}</button>
+    </div>
+  </div>`;
+}
+function noteItemHtml(n){
+  if(ui.noteEdit===n.id) return noteFormHtml(n);
+  return `<div class="list-item" style="align-items:flex-start">
+    <div style="flex:1;min-width:0">
+      <div data-action="dev.editNote" data-id="${n.id}" style="cursor:pointer;font-weight:600;word-break:break-word">${esc(n.title)}</div>
+      <div class="small dim" style="white-space:pre-wrap;word-break:break-word">${esc(n.content)}</div>
+    </div>
+    <button class="del-btn" data-action="dev.delNote" data-id="${n.id}">✕</button>
+  </div>`;
+}
+VIEWS.dev = function(){
+  const d = DB.data.dev;
+  const q = (ui.devSearch||'').trim().toLowerCase();
+  const sel = d.projects.find(p=>p.id===ui.devSel) || d.projects[0];
+  let right;
+  if(q){
+    const notes = d.notes.filter(n=>(n.title+'\n'+n.content).toLowerCase().includes(q));
+    right = `<div class="card"><h3 class="card-title">${t('dev.results')} (${notes.length})</h3>
+      ${notes.length ? notes.map(n=>{ const p=d.projects.find(x=>x.id===n.projectId);
+          return `<div class="list-item">
+            <span class="tag-chip tag-dev" style="cursor:default">${esc(p?p.name:'?')}</span>
+            <span class="item-text" data-action="dev.openNote" data-id="${n.id}">${esc(n.title)}</span>
+          </div>`; }).join('') : emptyHtml(t('dev.noResults'))}
+    </div>`;
+  } else if(sel){
+    const tasks = d.tasks.filter(x=>x.projectId===sel.id);
+    const notes = d.notes.filter(x=>x.projectId===sel.id);
+    const done = tasks.filter(x=>x.done).length;
+    right = `<div class="card">
+      <h3 class="card-title">
+        ${ui.devRename===sel.id
+          ? `<input id="proj-rename" class="grow" value="${esc(sel.name)}" data-enter="dev.renameSave" data-esc="dev.renameCancel">`
+          : `<span data-action="dev.renameStart" data-id="${sel.id}" style="cursor:pointer;word-break:break-word">${esc(sel.name)}</span>`}
+        <span class="row">
+          <select data-change="dev.status" data-id="${sel.id}" class="small">${['active','paused','done'].map(k=>`<option value="${k}" ${sel.status===k?'selected':''}>${t('enum.proj.'+k)}</option>`).join('')}</select>
+          <button class="del-btn" style="visibility:visible" data-action="dev.delProject" data-id="${sel.id}">✕</button>
+        </span>
+      </h3>
+      <div class="group-title">${t('dev.tasks')}（${done}/${tasks.length}）</div>
+      ${inlineAddHtml({inputId:'devtask-input', placeholder:t('dev.taskPh'), action:'dev.addTask', btnLabel:t('dev.addTaskBtn')})}
+      ${tasks.length ? tasks.slice().sort((a,b)=>(a.done?1:0)-(b.done?1:0)).map(devTaskHtml).join('') : emptyHtml(t('dev.noTask'))}
+      <div class="group-title" style="margin-top:16px">${t('dev.notes')}</div>
+      ${inlineAddHtml({inputId:'note-title-input', placeholder:t('dev.noteTitlePh'), action:'dev.addNoteStart', btnLabel:t('dev.addNote')})}
+      ${ui.noteEdit==='new' ? noteFormHtml({title:'',content:''}) : ''}
+      ${notes.length ? notes.map(noteItemHtml).join('') : (ui.noteEdit==='new'?'':emptyHtml(t('dev.noNotes')))}
+    </div>`;
+  } else {
+    right = `<div class="card">${emptyHtml(t('dev.noProj'))}</div>`;
+  }
+  return `<h2 class="page-title">${t('nav.dev')}</h2>
+  <div class="card" style="padding:10px 14px;margin-bottom:16px">
+    <input id="dev-search" style="width:100%" placeholder="${t('dev.searchPh')}" value="${esc(ui.devSearch||'')}" data-input="dev.search">
+  </div>
+  <div class="split">
+    <div class="card">
+      ${inlineAddHtml({inputId:'proj-input', placeholder:t('dev.projPh'), action:'dev.addProject'})}
+      ${d.projects.length ? d.projects.map(p=>{
+        const ts=d.tasks.filter(x=>x.projectId===p.id), dn=ts.filter(x=>x.done).length;
+        return `<div class="list-item" style="cursor:pointer;${sel&&sel.id===p.id?'background:var(--accent-weak);border-radius:8px':''}" data-action="dev.select" data-id="${p.id}">
+          <span style="flex:1;min-width:0;word-break:break-word"><b>${esc(p.name)}</b>
+          <div class="small dim">${t('enum.proj.'+p.status)} · ${dn}/${ts.length}</div></span>
+        </div>`; }).join('') : emptyHtml(t('dev.noProj'))}
+    </div>
+    ${right}
+  </div>`;
+};
+ACTIONS['dev.search'] = el => { ui.devSearch = el.value; render(); refocus('dev-search'); };
+ACTIONS['dev.addProject'] = () => {
+  const inp = $('#proj-input'); const v = inp.value.trim();
+  if(!v){ refocus('proj-input'); return; }
+  const p = { id:uid(), name:v, status:'active', createdAt:todayStr() };
+  DB.data.dev.projects.push(p); ui.devSel = p.id; ui.devSearch='';
+  DB.save(); render(); refocus('proj-input');
+};
+ACTIONS['dev.select'] = el => { ui.devSel = el.dataset.id; ui.devSearch=''; ui.noteEdit=null; render(); };
+ACTIONS['dev.status'] = el => { const p=DB.data.dev.projects.find(x=>x.id===el.dataset.id); if(p){ p.status=el.value; DB.save(); render(); } };
+ACTIONS['dev.renameStart'] = el => { ui.devRename = el.dataset.id; render(); refocus('proj-rename'); };
+ACTIONS['dev.renameSave'] = el => {
+  const p = DB.data.dev.projects.find(x=>x.id===ui.devRename);
+  const v = el.value.trim(); ui.devRename=null;
+  if(p && v){ p.name=v; DB.save(); }
+  render();
+};
+ACTIONS['dev.renameCancel'] = () => { ui.devRename=null; render(); };
+ACTIONS['dev.delProject'] = el => {
+  const id = el.dataset.id, p = DB.data.dev.projects.find(x=>x.id===id);
+  if(!p) return;
+  confirmModal({ title:t('common.del')+' · '+p.name, body:t('dev.delConfirm'), okLabel:t('common.del'),
+    onOk:()=>{ const d=DB.data.dev;
+      d.projects = d.projects.filter(x=>x.id!==id);
+      d.tasks = d.tasks.filter(x=>x.projectId!==id);
+      d.notes = d.notes.filter(x=>x.projectId!==id);
+      if(ui.devSel===id) ui.devSel=null;
+      DB.save(); render(); } });
+};
+ACTIONS['dev.addTask'] = () => {
+  const sel = DB.data.dev.projects.find(p=>p.id===ui.devSel) || DB.data.dev.projects[0];
+  const inp = $('#devtask-input'); const v = inp.value.trim();
+  if(!sel || !v){ refocus('devtask-input'); return; }
+  DB.data.dev.tasks.push({ id:uid(), projectId:sel.id, text:v, done:false });
+  DB.save(); render(); refocus('devtask-input');
+};
+ACTIONS['dev.toggleTask'] = el => { const x=DB.data.dev.tasks.find(t=>t.id===el.dataset.id); if(x){ x.done=!x.done; DB.save(); render(); } };
+ACTIONS['dev.delTask'] = el => {
+  const list=DB.data.dev.tasks, idx=list.findIndex(t=>t.id===el.dataset.id);
+  if(idx>=0) deleteWithUndo(list, idx, t('common.deleted'));
+};
+ACTIONS['dev.editTask'] = el => { ui.editTask=el.dataset.id; render(); refocus('devtask-edit'); };
+ACTIONS['dev.saveTaskEdit'] = el => {
+  const x=DB.data.dev.tasks.find(t=>t.id===ui.editTask);
+  const v=el.value.trim(); ui.editTask=null;
+  if(x && v){ x.text=v; DB.save(); }
+  render();
+};
+ACTIONS['dev.cancelTaskEdit'] = () => { ui.editTask=null; render(); };
+ACTIONS['dev.addNoteStart'] = () => { ui.noteEdit='new'; render(); refocus('note-title'); };
+ACTIONS['dev.saveNote'] = () => {
+  const title=$('#note-title').value.trim(), content=$('#note-content').value;
+  if(!title){ refocus('note-title'); return; }
+  const sel=DB.data.dev.projects.find(p=>p.id===ui.devSel)||DB.data.dev.projects[0];
+  if(!sel) return;
+  if(ui.noteEdit==='new') DB.data.dev.notes.push({ id:uid(), projectId:sel.id, title, content });
+  else { const n=DB.data.dev.notes.find(x=>x.id===ui.noteEdit); if(n){ n.title=title; n.content=content; } }
+  ui.noteEdit=null; DB.save(); render();
+};
+ACTIONS['dev.editNote'] = el => { ui.noteEdit=el.dataset.id; render(); refocus('note-title'); };
+ACTIONS['dev.cancelNote'] = () => { ui.noteEdit=null; render(); };
+ACTIONS['dev.delNote'] = el => {
+  const list=DB.data.dev.notes, idx=list.findIndex(x=>x.id===el.dataset.id);
+  if(idx>=0) deleteWithUndo(list, idx, t('common.deleted'));
+};
+ACTIONS['dev.openNote'] = el => {
+  const n=DB.data.dev.notes.find(x=>x.id===el.dataset.id);
+  if(n){ ui.devSel=n.projectId; ui.devSearch=''; ui.noteEdit=n.id; render(); refocus('note-title'); }
+};
+/* --- 咨询工作 --- */
+function sessionFormHtml(){
+  return `<div style="background:var(--accent-weak);border-radius:8px;padding:10px;margin-bottom:10px">
+    <div class="row">
+      <span class="small dim">${t('consult.sDate')}</span>
+      <input id="s-date" type="date" value="${todayStr()}" style="width:150px">
+      <span class="small dim">${t('consult.minutes')}</span>
+      <input id="s-min" type="number" class="num2" placeholder="${t('common.optional')}">
+    </div>
+    <textarea id="s-summary" placeholder="${t('consult.summary')}" style="margin-top:6px"></textarea>
+    <input id="s-follow" style="width:100%;margin-top:6px" placeholder="${t('consult.followUp')}（${t('common.optional')}）" data-enter="consult.saveSession">
+    <div class="row" style="margin-top:8px;justify-content:flex-end">
+      <button class="btn btn-sm" data-action="consult.sessionFormClose">${t('common.cancel')}</button>
+      <button class="btn btn-primary btn-sm" data-action="consult.saveSession">${t('common.save')}</button>
+    </div>
+  </div>`;
+}
+function sessionItemHtml(s){
+  return `<div class="list-item" style="align-items:flex-start">
+    <div style="flex:1;min-width:0">
+      <div class="row small dim">${esc(s.date)}${s.minutes?`<span>· ${s.minutes} ${t('common.min')}</span>`:''}</div>
+      <div style="white-space:pre-wrap;word-break:break-word">${esc(s.summary)}</div>
+      ${s.followUp?`<div class="row small" style="margin-top:4px">
+        <span class="dim">↳ ${esc(s.followUp)}</span>
+        ${s.todoAdded
+          ? `<span class="tag-chip tag-consult" style="cursor:default">${t('consult.addedFollow')}</span>`
+          : `<button class="btn btn-ghost btn-sm" data-action="consult.addFollow" data-id="${s.id}">${t('consult.addFollow')}</button>`}
+      </div>`:''}
+    </div>
+    <button class="del-btn" data-action="consult.delSession" data-id="${s.id}">✕</button>
+  </div>`;
+}
+VIEWS.consult = function(){
+  const d = DB.data.consult;
+  const q = (ui.consSearch||'').trim().toLowerCase();
+  const sel = d.clients.find(c=>c.id===ui.consSel) || d.clients[0];
+  const mk = todayStr().slice(0,7);
+  const monthN = d.sessions.filter(s=>(s.date||'').startsWith(mk)).length;
+  const totalMin = d.sessions.reduce((s,x)=>s+(Number(x.minutes)||0),0);
+  const clients = q ? d.clients.filter(c=>(c.name+'\n'+c.note).toLowerCase().includes(q)) : d.clients;
+  let right;
+  if(sel){
+    const sessions = d.sessions.filter(s=>s.clientId===sel.id).slice().sort((a,b)=>b.date<a.date?-1:1);
+    const fieldInput = (f, val) => ui.consField && ui.consField.id===sel.id && ui.consField.field===f
+      ? `<input id="c-field" class="grow" value="${esc(val||'')}" data-enter="consult.saveField" data-esc="consult.cancelField">`
+      : `<span class="item-text" data-action="consult.editField" data-id="${sel.id}" data-field="${f}" style="cursor:pointer">${esc(val||'—')}</span>`;
+    right = `<div class="card">
+      <h3 class="card-title">
+        ${ui.consRename===sel.id
+          ? `<input id="client-rename" class="grow" value="${esc(sel.name)}" data-enter="consult.renameSave" data-esc="consult.renameCancel">`
+          : `<span data-action="consult.renameStart" data-id="${sel.id}" style="cursor:pointer;word-break:break-word">${esc(sel.name)}</span>`}
+        <button class="btn btn-ghost btn-sm" style="color:var(--danger)" data-action="consult.delClient" data-id="${sel.id}">${t('consult.delBtn')}</button>
+      </h3>
+      <div class="group-title">${t('consult.info')}</div>
+      <div class="row small" style="margin-bottom:6px"><span class="dim" style="flex:0 0 66px">${t('consult.noteLabel')}</span>${fieldInput('note', sel.note)}</div>
+      <div class="row small"><span class="dim" style="flex:0 0 66px">${t('consult.contact')}</span>${fieldInput('contact', sel.contact)}</div>
+      <div class="group-title" style="margin-top:14px">${t('consult.sessions')}</div>
+      ${ui.sessionForm ? sessionFormHtml() : `<div class="row" style="margin-bottom:8px"><button class="btn btn-primary btn-sm" data-action="consult.sessionFormOpen">${t('consult.addSession')}</button></div>`}
+      ${sessions.length ? sessions.map(sessionItemHtml).join('') : emptyHtml(t('consult.noSessions'))}
+    </div>`;
+  } else {
+    right = `<div class="card">${emptyHtml(t('consult.noClient'))}</div>`;
+  }
+  return `<h2 class="page-title">${t('nav.consult')}</h2>
+  <div class="statbar"><span>${t('consult.statMonth',{n:monthN})}</span><span>${t('consult.statTotal',{h:fmtMinutes(totalMin)})}</span></div>
+  <div class="split">
+    <div class="card">
+      ${inlineAddHtml({inputId:'client-input', placeholder:t('consult.clientPh'), action:'consult.addClient'})}
+      <input id="cons-search" style="width:100%;margin-bottom:8px" placeholder="${t('consult.searchPh')}" value="${esc(ui.consSearch||'')}" data-input="consult.search">
+      ${clients.length ? clients.map(c=>`
+        <div class="list-item" style="cursor:pointer;${sel&&sel.id===c.id?'background:var(--accent-weak);border-radius:8px':''}" data-action="consult.select" data-id="${c.id}">
+          <span style="flex:1;min-width:0;word-break:break-word"><b>${esc(c.name)}</b>
+          <div class="small dim">${esc(c.note||'')}</div></span>
+        </div>`).join('') : emptyHtml(t('consult.noClient'))}
+    </div>
+    ${right}
+  </div>`;
+};
+ACTIONS['consult.search'] = el => { ui.consSearch = el.value; render(); refocus('cons-search'); };
+ACTIONS['consult.addClient'] = () => {
+  const inp = $('#client-input'); const v = inp.value.trim();
+  if(!v){ refocus('client-input'); return; }
+  const c = { id:uid(), name:v, note:'', contact:'' };
+  DB.data.consult.clients.push(c); ui.consSel = c.id; ui.consSearch='';
+  DB.save(); render(); refocus('client-input');
+};
+ACTIONS['consult.select'] = el => { ui.consSel = el.dataset.id; ui.consSearch=''; ui.sessionForm=false; ui.consField=null; render(); };
+ACTIONS['consult.renameStart'] = el => { ui.consRename = el.dataset.id; render(); refocus('client-rename'); };
+ACTIONS['consult.renameSave'] = el => {
+  const c = DB.data.consult.clients.find(x=>x.id===ui.consRename);
+  const v = el.value.trim(); ui.consRename=null;
+  if(c && v){ c.name=v; DB.save(); }
+  render();
+};
+ACTIONS['consult.renameCancel'] = () => { ui.consRename=null; render(); };
+ACTIONS['consult.editField'] = el => { ui.consField = { id:el.dataset.id, field:el.dataset.field }; render(); refocus('c-field'); };
+ACTIONS['consult.saveField'] = el => {
+  const f = ui.consField; const c = f && DB.data.consult.clients.find(x=>x.id===f.id);
+  const v = el.value.trim();
+  if(c && v){ c[f.field]=v; DB.save(); }
+  ui.consField=null; render();
+};
+ACTIONS['consult.cancelField'] = () => { ui.consField=null; render(); };
+ACTIONS['consult.delClient'] = el => {
+  const id = el.dataset.id, c = DB.data.consult.clients.find(x=>x.id===id);
+  if(!c) return;
+  confirmModal({ title:t('common.del')+' · '+c.name, body:t('consult.delConfirm'), okLabel:t('common.del'),
+    onOk:()=>{ const d=DB.data.consult;
+      d.clients = d.clients.filter(x=>x.id!==id);
+      d.sessions = d.sessions.filter(x=>x.clientId!==id);
+      if(ui.consSel===id) ui.consSel=null;
+      DB.save(); render(); } });
+};
+ACTIONS['consult.sessionFormOpen']  = () => { ui.sessionForm=true; render(); };
+ACTIONS['consult.sessionFormClose'] = () => { ui.sessionForm=false; render(); };
+ACTIONS['consult.saveSession'] = () => {
+  const sel = DB.data.consult.clients.find(c=>c.id===ui.consSel) || DB.data.consult.clients[0];
+  const summary = $('#s-summary').value.trim();
+  if(!sel || !summary){ refocus('s-summary'); return; }
+  const min = $('#s-min').value;
+  DB.data.consult.sessions.push({ id:uid(), clientId:sel.id, date:$('#s-date').value||todayStr(),
+    summary, minutes: min?Number(min):null, followUp:$('#s-follow').value.trim(), todoAdded:false });
+  ui.sessionForm=false; DB.save(); render();
+};
+ACTIONS['consult.delSession'] = el => {
+  const list=DB.data.consult.sessions, idx=list.findIndex(x=>x.id===el.dataset.id);
+  if(idx>=0) deleteWithUndo(list, idx, t('common.deleted'));
+};
+ACTIONS['consult.addFollow'] = el => {
+  const s = DB.data.consult.sessions.find(x=>x.id===el.dataset.id);
+  if(!s || s.todoAdded || !s.followUp) return;
+  DB.data.today.todos.push({ id:uid(), text:s.followUp, tag:'consult', date:todayStr(), done:false });
+  s.todoAdded = true;
+  DB.save(); render();
+  toast(t('consult.addFollow'));
+};
+/* --- 健身计划 --- */
+const WEEK_KEYS = ['mon','tue','wed','thu','fri','sat','sun'];
+function fitExLine(e){
+  const bits = [String(e.sets||'—'), '×', String(e.reps||'—')];
+  if(e.weightKg) bits.push('@ ' + e.weightKg + 'kg');
+  return `<div class="list-item">
+    <span class="item-text"><b>${esc(e.name)}</b> <span class="dim">${bits.join(' ')}</span>${e.note?` <span class="dim small">${esc(e.note)}</span>`:''}</span>
+    <button class="del-btn" data-action="fitness.delEx" data-id="${e.id}">✕</button>
+  </div>`;
+}
+VIEWS.fitness = function(){
+  const d = DB.data.fitness;
+  const tabs = `<div class="tabs">${[['today','fitness.tabToday'],['template','fitness.tabTemplate'],['history','fitness.tabHistory'],['cal','fitness.tabCal']]
+    .map(([k,l])=>`<button class="tab ${ui.fitTab===k?'active':''}" data-action="fitness.tab" data-tab="${k}">${t(l)}</button>`).join('')}</div>`;
+  let body;
+  if(ui.fitTab==='today'){
+    const date = ui.fitDate || todayStr();
+    const tpl = d.weekTemplate[weekdayKey(date)];
+    const log = d.logs.find(l=>l.date===date);
+    body = `<div class="card">
+      <h3 class="card-title">${tpl ? t('fitness.planToday',{x:esc(tpl)}) : t('fitness.rest')}
+        <span class="row small">
+          <input type="date" value="${date}" data-change="fitness.date" class="small">
+          ${date!==todayStr()?`<button class="btn btn-ghost btn-sm" data-action="fitness.dateReset">${t('common.today')}</button>`:''}
+        </span>
+      </h3>
+      <div class="inline-add">
+        <input id="fx-name" class="grow" placeholder="${t('fitness.exName')}" data-enter="fitness.addEx">
+        <input id="fx-sets" type="number" class="num2" placeholder="${t('fitness.sets')}">
+        <input id="fx-reps" type="number" class="num2" placeholder="${t('fitness.reps')}">
+        <input id="fx-kg" type="number" class="num2" placeholder="${t('fitness.weight')}">
+        <button class="btn btn-primary" data-action="fitness.addEx">${t('fitness.addEx')}</button>
+      </div>
+      <div class="small dim" style="margin:-6px 0 8px">${t('fitness.backdateHint')}</div>
+      ${log && log.exercises.length ? log.exercises.map(fitExLine).join('') : emptyHtml(t('fitness.noEx'))}
+    </div>`;
+  } else if(ui.fitTab==='template'){
+    body = `<div class="card">
+      ${WEEK_KEYS.map(k=>{
+        const v = d.weekTemplate[k];
+        return `<div class="week-row">
+          <span class="week-day">${t('enum.week.'+k)}</span>
+          ${ui.fitTplEdit===k
+            ? `<input id="tpl-edit" class="grow" value="${esc(v)}" data-enter="fitness.tplSave" data-esc="fitness.tplCancel">`
+            : `<span class="item-text ${v?'':'dim'}" data-action="fitness.tplStart" data-k="${k}" style="cursor:pointer">${v?esc(v):t('fitness.rest')}</span>`}
+        </div>`; }).join('')}
+    </div>`;
+  } else if(ui.fitTab==='cal'){
+    const ym = ui.fitCal || todayStr().slice(0,7);
+    body = `<div class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <button class="btn btn-sm" data-action="fitness.calPrev">‹</button>
+        <b>${ym.replace('-',' / ')}</b>
+        <span class="row">
+          <button class="btn btn-sm" data-action="fitness.calNow">${t('common.today')}</button>
+          <button class="btn btn-sm" data-action="fitness.calNext">›</button>
+        </span>
+      </div>
+      ${monthGridHtml(ym, (ds,inM)=>{
+        const log = DB.data.fitness.logs.find(l=>l.date===ds);
+        const theme = DB.data.fitness.weekTemplate[weekdayKey(ds)];
+        if(!inM) return {html:`<span class="dim">${Number(ds.slice(8))}</span>`};
+        const html = `<div style="font-weight:700">${Number(ds.slice(8))}</div>` +
+          (log ? `<div style="color:var(--accent);font-weight:600">${esc(theme||'·')}</div>
+                  <div class="dim">${log.exercises.length} ${t('fitness.exercises')}</div>`
+               : (theme?`<div class="dim">${esc(theme)}</div>`:''));
+        return {cls: log?'has':'', attr: log?`data-action="fitness.calOpen" data-date="${ds}"`:'',
+                html};
+      })}
+      <div class="small dim" style="margin-top:10px">${t('fitness.backdateHint')}</div>
+    </div>`;
+  } else {
+    const td = todayStr(), mk = td.slice(0,7), wk = mondayOf(td);
+    const monthN = d.logs.filter(l=>(l.date||'').startsWith(mk)).length;
+    const weekN  = d.logs.filter(l=>l.date>=wk && l.date<=td).length;
+    const logs = d.logs.slice().sort((a,b)=>a.date<b.date?1:-1);
+    body = `<div class="statbar"><span>${t('fitness.monthStat',{n:monthN})}</span><span>${t('fitness.weekStat',{n:weekN})}</span></div>
+    <div class="card">
+      ${logs.length ? logs.map(l=>{
+        const theme = d.weekTemplate[weekdayKey(l.date)];
+        return `<div style="border-bottom:1px solid var(--border);padding:8px 0">
+          <div class="row" data-action="fitness.toggleLog" data-id="${l.id}" style="cursor:pointer">
+            <b>${esc(fmtDateDisp(l.date))}</b>
+            <span class="dim small">${theme?esc(theme):t('fitness.rest')}</span>
+            <span class="spacer"></span>
+            <span class="dim small">${l.exercises.length} ${t('fitness.exercises')}</span>
+            <span class="dim">${ui.fitOpen===l.id?'▾':'▸'}</span>
+          </div>
+          ${ui.fitOpen===l.id?`<div class="log-detail">${l.exercises.map(fitExLine).join('')}</div>`:''}
+        </div>`; }).join('') : emptyHtml(t('fitness.noLogs'))}
+    </div>`;
+  }
+  return `<h2 class="page-title">${t('nav.fitness')}</h2>${tabs}${body}`;
+};
+ACTIONS['fitness.tab'] = el => { ui.fitTab = el.dataset.tab; render(); };
+ACTIONS['fitness.date'] = el => { ui.fitDate = el.value || todayStr(); render(); };
+ACTIONS['fitness.dateReset'] = () => { ui.fitDate = null; render(); };
+ACTIONS['fitness.addEx'] = () => {
+  const name = $('#fx-name').value.trim();
+  if(!name){ refocus('fx-name'); return; }
+  const date = ui.fitDate || todayStr();
+  let log = DB.data.fitness.logs.find(l=>l.date===date);
+  if(!log){ log = { id:uid(), date, exercises:[] }; DB.data.fitness.logs.push(log); }
+  log.exercises.push({ id:uid(), name,
+    sets:$('#fx-sets').value?Number($('#fx-sets').value):null,
+    reps:$('#fx-reps').value?Number($('#fx-reps').value):null,
+    weightKg:$('#fx-kg').value?Number($('#fx-kg').value):null, note:'' });
+  DB.save(); render(); refocus('fx-name');
+};
+ACTIONS['fitness.delEx'] = el => {
+  for(const log of DB.data.fitness.logs){
+    const i = log.exercises.findIndex(e=>e.id===el.dataset.id);
+    if(i>=0){ log.exercises.splice(i,1); if(!log.exercises.length) DB.data.fitness.logs = DB.data.fitness.logs.filter(l=>l.id!==log.id); DB.save(); render(); return; }
+  }
+};
+ACTIONS['fitness.tplStart'] = el => { ui.fitTplEdit = el.dataset.k; render(); refocus('tpl-edit'); };
+ACTIONS['fitness.tplSave'] = el => {
+  const k = ui.fitTplEdit;
+  if(k){ DB.data.fitness.weekTemplate[k] = el.value.trim(); DB.save(); }
+  ui.fitTplEdit = null; render();
+};
+ACTIONS['fitness.tplCancel'] = () => { ui.fitTplEdit = null; render(); };
+ACTIONS['fitness.toggleLog'] = el => { ui.fitOpen = ui.fitOpen===el.dataset.id ? null : el.dataset.id; render(); };
+ACTIONS['fitness.calPrev'] = () => { ui.fitCal = shiftMonth(ui.fitCal||todayStr().slice(0,7), -1); render(); };
+ACTIONS['fitness.calNext'] = () => { ui.fitCal = shiftMonth(ui.fitCal||todayStr().slice(0,7), 1); render(); };
+ACTIONS['fitness.calNow']  = () => { ui.fitCal = todayStr().slice(0,7); render(); };
+ACTIONS['fitness.calOpen'] = el => { ui.fitTab='today'; ui.fitDate=el.dataset.date; render(); };
+/* --- 饮食计划 --- */
+const MEALS = ['breakfast','lunch','dinner','snack'];
+function ensureDietDay(ds){
+  const days = DB.data.diet.days;
+  if(!days[ds]) days[ds] = { meals:{breakfast:[],lunch:[],dinner:[],snack:[]}, water:0 };
+  if(!days[ds].meals) days[ds].meals = {breakfast:[],lunch:[],dinner:[],snack:[]};
+  return days[ds];
+}
+function mealCardHtml(key, day){
+  const items = day.meals[key];
+  const pick = ui.dietPick===key;
+  const table = DB.data.diet.foodTable;
+  const flt = (ui.dietFilter||'').toLowerCase();
+  const cands = table.filter(f=>f.name.toLowerCase().includes(flt));
+  return `<div class="card">
+    <h3 class="card-title">${t('enum.meal.'+key)}<span class="dim small">${items.reduce((s,f)=>s+(Number(f.kcal)||0),0)||''}</span></h3>
+    <div class="inline-add">
+      <input id="food-name-${key}" class="grow" placeholder="${t('diet.foodPh')}" data-enter="diet.addFood" data-meal="${key}">
+      <input id="food-kcal-${key}" type="number" class="num2" placeholder="${t('diet.kcalPh')}">
+      <button class="btn btn-sm" data-action="diet.addFood" data-meal="${key}">${t('common.add')}</button>
+      <button class="btn btn-ghost btn-sm" data-action="diet.pickToggle" data-meal="${key}">${t('diet.pickFromLookup')}</button>
+    </div>
+    ${pick ? `<div class="lookup-panel">
+      <input id="lookup-filter" style="width:100%" placeholder="${t('diet.filterPh')}" value="${esc(ui.dietFilter||'')}" data-input="diet.pickFilter">
+      ${table.length ? (cands.length ? cands.map(f=>`
+        <div class="lookup-item" data-action="diet.pickAdd" data-meal="${key}" data-id="${f.id}">
+          <span>${esc(f.name)}</span><span class="dim">${f.kcal||'—'} ${t('common.kcal')}</span>
+        </div>`).join('') : `<div class="empty" style="padding:8px">${t('diet.noPick')}</div>`) : `<div class="empty" style="padding:8px">${t('diet.lookupEmpty')}</div>`}
+    </div>` : ''}
+    ${items.length ? items.map(f=>`<div class="list-item">
+        <span class="item-text">${esc(f.name)}${f.kcal?` <span class="dim small">${f.kcal} ${t('common.kcal')}</span>`:''}</span>
+        <button class="del-btn" data-action="diet.delFood" data-meal="${key}" data-id="${f.id}">✕</button>
+      </div>`).join('') : ''}
+  </div>`;
+}
+VIEWS.diet = function(){
+  const ds = ui.dietDate || todayStr();
+  const day = ensureDietDay(ds);
+  const tabs = `<div class="tabs">${[['today','diet.tabToday'],['lookup','diet.tabLookup'],['cal','diet.tabCal']]
+    .map(([k,l])=>`<button class="tab ${ui.dietTab===k?'active':''}" data-action="diet.tab" data-tab="${k}">${t(l)}</button>`).join('')}</div>`;
+  const prev = addDaysStr(ds,-1), next = addDaysStr(ds,1), isToday = ds===todayStr();
+  const dateNav = `<div class="row" style="margin-bottom:12px">
+    <button class="btn btn-sm" data-action="diet.prev">‹</button>
+    <span class="muted">${ds===todayStr()?t('common.today'):fmtDateDisp(ds)}</span>
+    ${isToday?`<button class="btn btn-sm" disabled style="opacity:.4">›</button>`:`<button class="btn btn-sm" data-action="diet.next">›</button>`}
+  </div>`;
+  let body;
+  if(ui.dietTab==='today'){
+    const total = MEALS.reduce((s,k)=>s+day.meals[k].reduce((q,f)=>q+(Number(f.kcal)||0),0),0);
+    body = `${dateNav}
+    <div class="grid2">${MEALS.map(k=>mealCardHtml(k, day)).join('')}</div>
+    <div class="card" style="margin-top:16px">
+      <h3 class="card-title">${t('diet.water')}
+        ${ui.dietGoalEdit
+          ? `<input id="goal-edit" type="number" class="num2" value="${DB.data.diet.waterGoal}" data-enter="diet.goalSave" data-esc="diet.goalCancel">`
+          : `<span class="row small"><span class="dim">${t('diet.waterGoal',{n:DB.data.diet.waterGoal})}</span>
+             <button class="btn btn-ghost btn-sm" data-action="diet.goalEdit">${t('diet.editGoal')}</button></span>`}
+      </h3>
+      <div class="row" style="font-size:22px"><b>${day.water}</b><span class="dim">/ ${DB.data.diet.waterGoal}</span>
+        <button class="btn" data-action="diet.waterPlus">${t('diet.addCup')}</button>
+        <button class="btn" data-action="diet.waterMinus">${t('diet.subCup')}</button>
+      </div>
+      <div class="small dim" style="margin-top:8px">${total?t('diet.totalKcal',{n:total}):''}</div>
+    </div>`;
+  } else if(ui.dietTab==='cal'){
+    const ym = ui.dietCal || todayStr().slice(0,7);
+    body = `<div class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <button class="btn btn-sm" data-action="diet.calPrev">‹</button>
+        <b>${ym.replace('-',' / ')}</b>
+        <span class="row">
+          <button class="btn btn-sm" data-action="diet.calNow">${t('common.today')}</button>
+          <button class="btn btn-sm" data-action="diet.calNext">›</button>
+        </span>
+      </div>
+      ${monthGridHtml(ym, (ds,inM)=>{
+        const day = DB.data.diet.days[ds];
+        if(!inM) return {html:`<span class="dim">${Number(ds.slice(8))}</span>`};
+        let html = `<div style="font-weight:700">${Number(ds.slice(8))}</div>`;
+        if(day){
+          const kcal = MEALS.reduce((s,k)=>s+(day.meals[k]||[]).reduce((q,f)=>q+(Number(f.kcal)||0),0),0);
+          const n = MEALS.filter(k=>(day.meals[k]||[]).length).length;
+          html += (kcal?`<div style="color:var(--accent);font-weight:600">${kcal} ${t('common.kcal')}</div>`:'')
+               + (n?`<div class="dim">${t('home.mealsN',{n})}</div>`:'')
+               + `<div class="dim">💧 ${day.water||0} / ${DB.data.diet.waterGoal}</div>`;
+        }
+        return {cls: day?'has':'', attr:`data-action="diet.calOpen" data-date="${ds}"`, html};
+      })}
+    </div>`;
+  } else {
+    body = `<div class="card">
+      <div class="inline-add">
+        <input id="lk-name" class="grow" placeholder="${t('diet.lookupName')}" data-enter="diet.lookupAdd">
+        <input id="lk-kcal" type="number" class="num2" placeholder="${t('diet.lookupKcal')}">
+        <button class="btn btn-primary" data-action="diet.lookupAdd">${t('diet.addFood')}</button>
+      </div>
+      ${DB.data.diet.foodTable.length ? DB.data.diet.foodTable.map(f=>`<div class="list-item">
+          <span class="item-text">${esc(f.name)}</span>
+          <span class="dim small">${f.kcal||'—'} ${t('common.kcal')}</span>
+          <button class="del-btn" data-action="diet.lookupDel" data-id="${f.id}">✕</button>
+        </div>`).join('') : emptyHtml(t('diet.lookupEmpty'))}
+    </div>`;
+  }
+  return `<h2 class="page-title">${t('nav.diet')}</h2>${tabs}${body}`;
+};
+ACTIONS['diet.tab'] = el => { ui.dietTab = el.dataset.tab; ui.dietPick=null; render(); };
+ACTIONS['diet.prev'] = () => { ui.dietDate = addDaysStr(ui.dietDate||todayStr(),-1); ui.dietPick=null; render(); };
+ACTIONS['diet.next'] = () => { const n = addDaysStr(ui.dietDate||todayStr(),1); if(n<=todayStr()){ ui.dietDate=n; ui.dietPick=null; render(); } };
+ACTIONS['diet.addFood'] = el => {
+  const key = el.dataset.meal || (document.activeElement&&document.activeElement.dataset.meal) || '';
+  const name = $(`#food-name-${key}`); const kcal = $(`#food-kcal-${key}`);
+  if(!name || !name.value.trim()){ if(name) refocus(`food-name-${key}`); return; }
+  ensureDietDay(ui.dietDate||todayStr()).meals[key].push({ id:uid(), name:name.value.trim(), kcal:kcal&&kcal.value?Number(kcal.value):null });
+  DB.save(); render(); refocus(`food-name-${key}`);
+};
+ACTIONS['diet.delFood'] = el => {
+  const items = ensureDietDay(ui.dietDate||todayStr()).meals[el.dataset.meal];
+  const idx = items.findIndex(f=>f.id===el.dataset.id);
+  if(idx>=0) deleteWithUndo(items, idx, t('common.deleted'));
+};
+ACTIONS['diet.pickToggle'] = el => {
+  ui.dietPick = ui.dietPick===el.dataset.meal ? null : el.dataset.meal;
+  ui.dietFilter=''; render();
+  if(ui.dietPick) refocus('lookup-filter');
+};
+ACTIONS['diet.pickFilter'] = el => { ui.dietFilter = el.value; render(); refocus('lookup-filter'); };
+ACTIONS['diet.pickAdd'] = el => {
+  const f = DB.data.diet.foodTable.find(x=>x.id===el.dataset.id);
+  if(!f) return;
+  ensureDietDay(ui.dietDate||todayStr()).meals[el.dataset.meal].push({ id:uid(), name:f.name, kcal:f.kcal });
+  DB.save(); render();
+};
+ACTIONS['diet.waterPlus']  = () => { const day=ensureDietDay(ui.dietDate||todayStr()); day.water++; DB.save(); render(); };
+ACTIONS['diet.waterMinus'] = () => { const day=ensureDietDay(ui.dietDate||todayStr()); if(day.water>0) day.water--; DB.save(); render(); };
+ACTIONS['diet.goalEdit'] = () => { ui.dietGoalEdit=true; render(); refocus('goal-edit'); };
+ACTIONS['diet.goalSave'] = el => {
+  const v = Number(el.value);
+  if(v>0) DB.data.diet.waterGoal = v;
+  ui.dietGoalEdit=false; DB.save(); render();
+};
+ACTIONS['diet.goalCancel'] = () => { ui.dietGoalEdit=false; render(); };
+ACTIONS['diet.lookupAdd'] = () => {
+  const name = $('#lk-name'); const kcal = $('#lk-kcal');
+  if(!name.value.trim()){ refocus('lk-name'); return; }
+  DB.data.diet.foodTable.push({ id:uid(), name:name.value.trim(), kcal:kcal.value?Number(kcal.value):null });
+  DB.save(); render(); refocus('lk-name');
+};
+ACTIONS['diet.lookupDel'] = el => {
+  const list = DB.data.diet.foodTable, idx = list.findIndex(f=>f.id===el.dataset.id);
+  if(idx>=0) deleteWithUndo(list, idx, t('common.deleted'));
+};
+ACTIONS['diet.calPrev'] = () => { ui.dietCal = shiftMonth(ui.dietCal||todayStr().slice(0,7), -1); render(); };
+ACTIONS['diet.calNext'] = () => { ui.dietCal = shiftMonth(ui.dietCal||todayStr().slice(0,7), 1); render(); };
+ACTIONS['diet.calNow']  = () => { ui.dietCal = todayStr().slice(0,7); render(); };
+ACTIONS['diet.calOpen'] = el => { ui.dietDate = el.dataset.date; ui.dietTab = 'today'; ui.dietPick = null; render(); };
+/* --- 游戏娱乐 --- */
+const GAME_ST = ['playing','wish','finished','dropped'];
+VIEWS.games = function(){
+  const d = DB.data.games;
+  const td = todayStr(), mk = td.slice(0,7);
+  const monthMin = d.plays.filter(p=>(p.date||'').startsWith(mk)).reduce((s,p)=>s+(Number(p.minutes)||0),0);
+  const playingN = d.games.filter(g=>g.status==='playing').length;
+  const chips = [['all','common.all'],...GAME_ST.map(k=>[k,'enum.game.'+k])]
+    .map(([k,l])=>`<button class="chip ${ui.gameFilter===k?'active':''}" data-action="games.filter" data-f="${k}">${t(l)}</button>`).join('');
+  const list = d.games.filter(g=>ui.gameFilter==='all'||g.status===ui.gameFilter);
+  const recent = d.plays.slice().reverse().slice(0,10);
+  return `<h2 class="page-title">${t('nav.games')}</h2>
+  <div class="statbar"><span>${t('games.monthTotal',{h:fmtMinutes(monthMin)})}</span><span>${t('games.playingN',{n:playingN})}</span></div>
+  <div class="card">
+    ${inlineAddHtml({inputId:'game-input', placeholder:t('games.gamePh'), action:'games.add'})}
+    <div class="row" style="margin-bottom:10px">${chips}</div>
+    ${list.length ? list.map(g=>`
+      <div class="list-item">
+        <span style="flex:1;min-width:0"><b style="word-break:break-word">${esc(g.name)}</b>
+          <div class="small dim">${fmtMinutes(g.totalMinutes||0)}</div></span>
+        <select data-change="games.status" data-id="${g.id}" class="small">${GAME_ST.map(k=>`<option value="${k}" ${g.status===k?'selected':''}>${t('enum.game.'+k)}</option>`).join('')}</select>
+        ${ui.gameLog===g.id
+          ? `<input id="play-min" type="number" class="num2" placeholder="${t('games.minPh')}" data-enter="games.logSave" autofocus>
+             <button class="btn btn-primary btn-sm" data-action="games.logSave" data-id="${g.id}">${t('games.log')}</button>`
+          : `<button class="btn btn-sm" data-action="games.logStart" data-id="${g.id}">${t('games.record')}</button>`}
+        <button class="del-btn" data-action="games.del" data-id="${g.id}">✕</button>
+      </div>`).join('') : emptyHtml(t('games.noGames'))}
+  </div>
+  <div class="card">
+    <h3 class="card-title">${t('games.recent')}</h3>
+    ${recent.length ? recent.map(p=>{
+      const g = d.games.find(x=>x.id===p.gameId);
+      return `<div class="list-item"><span class="dim small" style="flex:0 0 96px">${esc(p.date)}</span>
+        <span class="item-text">${esc(g?g.name:'?')}</span><span class="small">${fmtMinutes(p.minutes)}</span></div>`;
+    }).join('') : emptyHtml(t('games.noPlays'))}
+  </div>`;
+};
+ACTIONS['games.add'] = () => {
+  const inp = $('#game-input'); const v = inp.value.trim();
+  if(!v){ refocus('game-input'); return; }
+  DB.data.games.games.push({ id:uid(), name:v, status:'wish', totalMinutes:0 });
+  DB.save(); render(); refocus('game-input');
+};
+ACTIONS['games.filter'] = el => { ui.gameFilter = el.dataset.f; render(); };
+ACTIONS['games.status'] = el => { const g=DB.data.games.games.find(x=>x.id===el.dataset.id); if(g){ g.status=el.value; DB.save(); render(); } };
+ACTIONS['games.logStart'] = el => { ui.gameLog = el.dataset.id; render(); refocus('play-min'); };
+ACTIONS['games.logSave'] = el => {
+  const id = el.dataset.id || ui.gameLog;
+  const g = DB.data.games.games.find(x=>x.id===id);
+  const min = Number(($('#play-min')||{}).value);
+  if(!g || !min || min<=0){ refocus('play-min'); return; }
+  g.totalMinutes = (g.totalMinutes||0) + min;
+  DB.data.games.plays.push({ id:uid(), gameId:g.id, date:todayStr(), minutes:min });
+  ui.gameLog = null; DB.save(); render();
+};
+ACTIONS['games.del'] = el => {
+  const id = el.dataset.id;
+  const gi = DB.data.games.games.findIndex(g=>g.id===id);
+  if(gi<0) return;
+  const game = DB.data.games.games[gi];
+  const plays = DB.data.games.plays.filter(p=>p.gameId===id);
+  DB.data.games.games.splice(gi,1);
+  DB.data.games.plays = DB.data.games.plays.filter(p=>p.gameId!==id);
+  DB.save(); render();
+  toast(t('common.deleted'), ()=>{
+    DB.data.games.games.splice(gi,0,game);
+    DB.data.games.plays.push(...plays);
+    DB.save(); render();
+  });
+};
+
+/* ---------- 7. 启动 ---------- */
+const App = {
+  version: '1.0.0',
+  get data(){ return DB.data; },
+  save: () => DB.save(),
+  t, go, render,
+  _setToday(v){ TODAY_OVERRIDE = v; render(); },
+  _getToday: () => todayStr()
+};
+window.App = App;
+
+DB.load();
+const __q = new URLSearchParams(location.search);
+if(__q.get('today')) TODAY_OVERRIDE = __q.get('today');
+applyPrefs();
+render();
+</script>
+</body>
+</html>
