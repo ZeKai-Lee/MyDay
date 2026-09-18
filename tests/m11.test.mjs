@@ -7,6 +7,11 @@ export default {
     { url: APP },
     { js: "(()=>{ localStorage.clear(); window.__errs=[]; window.addEventListener('error',e=>window.__errs.push(String(e.message||e))); return 'setup-ok'; })()" },
     { url: APP },
+    // A0. 全新状态：首页显示“从存档导入”迁移引导
+    { js: `(()=>{ const R=[]; const ok=(n,c,i)=>R.push({n,c:!!c,i:i==null?'':String(i)});
+      ok('全新状态显示迁移引导', document.querySelector('#content').textContent.includes('全新安装'));
+      ok('引导按钮跳设置', !!document.querySelector('#content [data-view="settings"]'));
+      return R; })()` },
     // A. 手动保存按钮 + Ctrl+S
     { js: `(async()=>{ const R=[]; const ok=(n,c,i)=>R.push({n,c:!!c,i:i==null?'':String(i)});
       const $$=s=>[...document.querySelectorAll(s)];

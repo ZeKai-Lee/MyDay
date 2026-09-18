@@ -30,7 +30,7 @@ export default {
       ok('31天前→红色', document.querySelector('#data-status .ds-backup').className.includes('danger'), sb().className);
       App.data.prefs.lastExportAt=ago(2); App.save(); App.render();
       ok('2天前→绿色', document.querySelector('#data-status .ds-backup').className.includes('ok'), sb().className);
-      ok('设置页含说明与版本', document.querySelector('#content').textContent.includes('浏览器')&&document.querySelector('#content').textContent.includes('1.0.0'));
+      ok('设置页含说明与版本', document.querySelector('#content').textContent.includes('浏览器')&&document.querySelector('#content').textContent.includes('1.1.1'));
       return R; })()` },
     // B. 清空（输错字不放行 / 输对清空）
     { js: `(async()=>{ const R=[]; const ok=(n,c,i)=>R.push({n,c:!!c,i:i==null?'':String(i)});
