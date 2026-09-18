@@ -11,12 +11,18 @@
    - `main.js`（本目录文件：创建窗口、加载 MyDay.html、icon、加载完成日志）
    - `package.json`（本目录文件：name/productName=MyDay，main=main.js）
    - `MyDay.html`（项目根目录的应用本体）
-   - `icon.ico`（可用 packaging 内脚本思路生成：System.Drawing 画紫渐变+白 M）
+   - `icon.ico`（本目录文件：蓝色渐变底 + 白色 M，System.Drawing 生成）
 4. 精简 `locales/`：只保留 `zh-CN.pak`、`en-US.pak`、`en-GB.pak`，其余删除（省约 30MB）。
 5. 放入 `使用说明.md`。
 6. 验收：启动 MyDay.exe → 进程存在 → 控制台输出 `[MyDay] loaded ok` →
    `%APPDATA%\MyDay` 数据目录创建 → 关闭退出干净。
 7. 压缩：`Compress-Archive release/MyDay-exe-win64/* → release/MyDay-v1.1.1-exe-win64.zip`。
+
+## 正式存放路径
+
+日常使用的 exe 版安装在 **`D:\MyDay\`**（从 release 构建目录复制过去），桌面快捷方式 `MyDay.lnk`
+指向 `D:\MyDay\MyDay.exe`，快捷方式图标取自 `D:\MyDay\resources\app\icon.ico`。
+项目内的 `release/MyDay-exe-win64/` 只是构建工作目录（已 gitignore）。
 
 ## 已知限制
 
